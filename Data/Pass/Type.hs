@@ -98,7 +98,7 @@ envWith acc (Ap _ l r) = envWith (envWith acc l) r
 envWith acc (Pass _ t) = Env.insert t mempty acc
 
 instance Call k => Eval (Pass k) where
-  eval f xs = foldr Env.cons (env f) xs `evalWith` f
+  f @@ xs = foldr Env.cons (env f) xs `evalWith` f
 
 evalWith :: Call k => Env k a -> Pass k a c -> c
 evalWith _ (Pure a) = a

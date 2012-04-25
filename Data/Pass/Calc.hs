@@ -73,5 +73,5 @@ instance Call k => Naive (Calc k) where
   naive (Step i k) as = naive (k (naive i as)) as
 
 instance Call k => Eval (Calc k) where
-  eval (Stop b)   _  = b
-  eval (Step i k) xs = eval (k (eval i xs)) xs
+  Stop b   @@ _  = b
+  Step i k @@ xs = k (i @@ xs) @@ xs

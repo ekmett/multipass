@@ -1,11 +1,11 @@
 module Data.Pass
-  ( Thrist(..)
+  ( Thrist(..), thrist
   , Prep(..)
   , Calc(..)
   , Calculation(..)
   , Pass(..)
   , Passable(..)
-  , Eval(..), (@@)
+  , Eval(..)
   , Naive(..)
   , Call(..)
   , Named(..)
