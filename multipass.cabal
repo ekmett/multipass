@@ -13,6 +13,8 @@ synopsis:      Folding data with multiple named passes
 description:   Folding data with multiple named passes
 build-type:    Simple
 
+extra-source-files: examples/Pass.hs
+
 source-repository head
   type: git
   location: git://github.com/ekmett/multipass.git
@@ -29,10 +31,10 @@ library
 
   exposed-modules:
     Data.Pass
-    Data.Pass.Class
     Data.Pass.Calc
     Data.Pass.Calculation
     Data.Pass.Call
+    Data.Pass.Class
     Data.Pass.Env
     Data.Pass.Eval
     Data.Pass.Eval.Naive
@@ -45,5 +47,3 @@ library
     Data.Pass.Type
 
   ghc-options: -Wall
-
---  examples/Pass.hs:{-# LANGUAGE GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules #-}
