@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, KindSignatures, GADTs #-}
+{-# LANGUAGE GADTs #-}
 module Data.Pass.Type
   ( Pass(..)
   , env
@@ -19,8 +19,7 @@ import qualified Data.Pass.Env as Env
 import Data.Pass.Env (Env)
 import Data.Pass.Trans
 
-data Pass :: (* -> * -> *) -> * -> * -> * where
-  -- TODO: after the thrist store a reducer?
+data Pass k a b where
   Pass :: (Monoid m, Typeable m) => (m -> o) -> Thrist k i m -> Pass k i o
   Ap   :: (b -> c) -> Pass k i (a -> b) -> Pass k i a -> Pass k i c
   Pure :: a -> Pass k i a

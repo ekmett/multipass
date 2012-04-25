@@ -5,7 +5,6 @@ module Data.Pass.Class
 import Data.Typeable
 import Data.Monoid
 import Data.Pass.Type
-import Data.Pass.Calc
 import Data.Pass.Eval
 import Data.Pass.Fun
 import Data.Pass.Thrist

@@ -18,7 +18,6 @@ import Data.Pass.Call
 import Data.Pass.Class
 import Data.Pass.Eval
 import Data.Pass.Eval.Naive
-import Data.Pass.Fold
 import Data.Pass.Named
 import Data.Pass.Prep
 import Data.Pass.Thrist

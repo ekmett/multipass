@@ -21,7 +21,7 @@ instance Calculation Thrist where
   calc = calc . pass
 
 instance Calculation Pass where
-  calc pass = Step (Stop ()) (\_ -> pass)
+  calc p = Step (Stop ()) (\_ -> p)
 
 instance Calculation Calc where
   calc = id

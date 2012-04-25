@@ -49,4 +49,4 @@ insert :: (Call k, Typeable b, Monoid b) => Thrist k a b -> b -> Env k a -> Env 
 insert k v (Env m) = Env $ HashMap.insert (Key k) (unsafeCoerce v) m
 
 cons :: Call k => a -> Env k a -> Env k a
-cons a (Env m) = Env $ mapWithKey (\(Key k) old -> unsafeCoerce $ unsafeCoerce old <> call k a) m
+cons a (Env m) = Env $ mapWithKey (\(Key k) old -> unsafeCoerce $ call k a <> unsafeCoerce old) m

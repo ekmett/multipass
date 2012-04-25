@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, GADTs, Rank2Types #-}
+{-# LANGUAGE GADTs, Rank2Types #-}
 module Data.Pass.Thrist
   ( Thrist(..)
   , thrist
@@ -15,7 +15,7 @@ import Data.Pass.Trans
 
 infixr 5 :-
 
-data Thrist :: (* -> * -> *) -> * -> * -> * where
+data Thrist k a b where
   Nil :: Thrist k a a
   (:-) :: k b c -> Thrist k a b -> Thrist k a c
 

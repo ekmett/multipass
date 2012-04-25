@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, KindSignatures, DataKinds, GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules #-}
+{-# LANGUAGE GADTs #-}
 module Data.Pass.Calc
   ( Calc(..)
   ) where
@@ -29,7 +29,7 @@ instance Applicative (Calc k a) where
   Step fg kgf <*> Step fb kba = Step (liftA2 (,) fg fb) $ \(g, b) -> kgf g <*> kba b
 
 instance Prep Calc where
-  prep t (Stop b) = Stop b
+  prep _ (Stop b) = Stop b
   prep t (Step c k) = Step (prep t c) (prep t . k)
 
 instance Num b => Num (Calc k a b) where

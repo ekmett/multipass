@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies, KindSignatures, DataKinds, GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules #-}
 module Data.Pass.Fun
   ( Fun(..)
   ) where
@@ -9,7 +8,7 @@ import Data.Pass.Named
 import Data.Pass.Call
 import Data.Pass.Trans
 
-newtype Fun (k :: * -> * -> *) a b = Fun { unFun :: k a b }
+newtype Fun k a b = Fun { unFun :: k a b }
 
 instance Trans Fun where
   trans = Fun

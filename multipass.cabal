@@ -18,7 +18,7 @@ source-repository head
   location: git://github.com/ekmett/multipass.git
 
 library
-  other-extensions: CPP
+  other-extensions: GADTs, ScopedTypeVariables, Rank2Types
 
   build-depends:
     ghc-prim,
@@ -29,16 +29,21 @@ library
 
   exposed-modules:
     Data.Pass
+    Data.Pass.Class
     Data.Pass.Calc
+    Data.Pass.Calculation
     Data.Pass.Call
     Data.Pass.Env
     Data.Pass.Eval
     Data.Pass.Eval.Naive
-    Data.Pass.Fold
     Data.Pass.Fun
     Data.Pass.Key
     Data.Pass.Named
     Data.Pass.Prep
     Data.Pass.Thrist
+    Data.Pass.Trans
+    Data.Pass.Type
 
   ghc-options: -Wall
+
+--  examples/Pass.hs:{-# LANGUAGE GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules #-}
