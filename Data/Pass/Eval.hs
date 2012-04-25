@@ -1,10 +1,14 @@
 module Data.Pass.Eval
   ( Eval(..)
+  , (@@)
   ) where
 
-import Data.Typeable
+import Data.Foldable
 
-class Typeable2 k => Eval k where
-  eval             :: k a b -> a -> b
-  hashFunWithSalt  :: Int -> k a b -> Int
-  equalFun         :: k a b -> k c d -> Bool
+class Eval k where
+  eval :: Foldable f => k a b -> f a -> b
+
+infixr 5 @@
+
+(@@) :: (Eval k, Foldable f) => k a b -> f a -> b
+(@@) = eval

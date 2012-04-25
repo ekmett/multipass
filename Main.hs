@@ -9,11 +9,7 @@ import Data.Hashable
 import Data.Foldable
 import Data.Typeable
 import Prelude hiding (id,(.))
-import Data.Pass.Eval
-import Data.Pass.Thrist
-import Data.Pass.Calc
-import Data.Pass.Fold
-import Data.Pass.Named
+import Data.Pass
 
 -- example calculation type
 data Test a b where
@@ -22,37 +18,36 @@ data Test a b where
   Square :: Num a => Test a a
   deriving Typeable
 
-deriving instance Typeable1 Sum
+deriving instance Typeable1 Sum -- :(
 
-calc :: (Monoid b, Typeable b) => Test a b -> Calc Test a b
-calc t = Calc id (thrist t)
+count :: (Typeable b, Num b) => Pass Test a b
+count = getSum <$> trans Count
 
-count :: (Typeable b, Num b) => Calc Test a b
-count = getSum <$> calc Count
+total :: (Typeable a, Num a) => Pass Test a a
+total = getSum <$> trans Total
 
-total :: (Typeable a, Num a) => Calc Test a a
-total = getSum <$> calc Total
-
-mean :: (Typeable a, Fractional a) => Calc Test a a
+mean :: (Typeable a, Fractional a) => Pass Test a a
 mean = total / count
 
-sumSq :: (Typeable a, Num a) => Calc Test a a
-sumSq = thrist Square `lmap` total
+sumSq :: (Typeable a, Num a) => Pass Test a a
+sumSq = prep Square total
 
-var :: (Typeable a, Fractional a) => Calc Test a a
+var :: (Typeable a, Fractional a) => Pass Test a a
 var = sumSq/count - mean^2
 
-instance Eval Test where
+instance Call Test where
+  call Total a = Sum a
+  call Count _ = Sum 1
+  call Square a = a * a
+
   equalFun Total Total = True
   equalFun Count Count = True
   equalFun Square Square = True
   equalFun _ _ = False
+
   hashFunWithSalt n Total = n `hashWithSalt` 0
   hashFunWithSalt n Count = n `hashWithSalt` 1
   hashFunWithSalt n Square = n `hashWithSalt` 2
-  eval Total a = Sum a
-  eval Count _ = Sum 1
-  eval Square a = a * a
 
 instance Named Test where
   showsFun _ Total = showString "Total"

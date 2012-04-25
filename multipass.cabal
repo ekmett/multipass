@@ -30,13 +30,15 @@ library
   exposed-modules:
     Data.Pass
     Data.Pass.Calc
+    Data.Pass.Call
     Data.Pass.Env
-    Data.Pass.Key
     Data.Pass.Eval
+    Data.Pass.Eval.Naive
     Data.Pass.Fold
-    Data.Pass.Thrist
-    Data.Pass.Named
-
     Data.Pass.Fun
+    Data.Pass.Key
+    Data.Pass.Named
+    Data.Pass.Prep
+    Data.Pass.Thrist
 
   ghc-options: -Wall

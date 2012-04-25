@@ -3,4 +3,4 @@ module Data.Pass.Named
   ) where
 
 class Named k where
-  showsFun         :: Int -> k a b -> String -> String
+  showsFun :: Int -> k a b -> String -> String
