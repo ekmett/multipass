@@ -4,6 +4,10 @@ module Data.Pass.Type
   , env
   ) where
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 0
+#endif
+
 import Control.Category
 import Control.Applicative hiding (empty)
 import Data.Monoid

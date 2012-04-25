@@ -3,6 +3,10 @@ module Data.Pass.Fun
   ( Fun(..)
   ) where
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 0
+#endif
+
 import Data.Hashable
 import Data.Typeable
 import Data.Pass.Named

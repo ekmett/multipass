@@ -5,6 +5,10 @@ module Data.Pass.Thrist
   , fromThrist
   ) where
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 0
+#endif
+
 import Control.Category
 import Data.Hashable
 import Data.Typeable
