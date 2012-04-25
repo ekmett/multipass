@@ -17,6 +17,7 @@ import GHC.Prim (Any)
 import Unsafe.Coerce
 import Data.Pass.Key
 import Data.Pass.Thrist
+import Data.Pass.Named
 
 newtype Id a = Id { getId :: a }
 
@@ -31,6 +32,12 @@ mapWithKey :: (k -> a -> b) -> HashMap k a -> HashMap k b
 mapWithKey f m = getId (HashMap.traverseWithKey (\k a -> Id (f k a)) m)
 
 newtype Env k a = Env (HashMap (Key k a) Any)
+
+data Fake = Any deriving Show
+
+instance Named k => Show (Env k a) where
+  showsPrec d (Env m) = showParen (d > 10) $
+    showString "Env " . showsPrec 10 (Any <$ m)
 
 empty :: Env k a
 empty = Env HashMap.empty

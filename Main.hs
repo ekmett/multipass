@@ -13,6 +13,7 @@ import Data.Pass.Eval
 import Data.Pass.Thrist
 import Data.Pass.Calc
 import Data.Pass.Fold
+import Data.Pass.Named
 
 -- example calculation type
 data Test a b where
@@ -44,6 +45,7 @@ var = sumSq/count - mean^2
 instance Eval Test where
   equalFun Total Total = True
   equalFun Count Count = True
+  equalFun Square Square = True
   equalFun _ _ = False
   hashFunWithSalt n Total = n `hashWithSalt` 0
   hashFunWithSalt n Count = n `hashWithSalt` 1
@@ -51,6 +53,8 @@ instance Eval Test where
   eval Total a = Sum a
   eval Count _ = Sum 1
   eval Square a = a * a
-  showFun Total = "Total"
-  showFun Count = "Count"
-  showFun Square = "Square"
+
+instance Named Test where
+  showsFun _ Total = showString "Total"
+  showsFun _ Count = showString "Count"
+  showsFun _ Square = showString "Square"
