@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE CPP, GADTs #-}
 module Data.Pass.Type
   ( Pass(..)
   , env

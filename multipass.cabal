@@ -20,7 +20,7 @@ source-repository head
   location: git://github.com/ekmett/multipass.git
 
 library
-  other-extensions: GADTs, ScopedTypeVariables, Rank2Types
+  other-extensions: CPP, GADTs, ScopedTypeVariables, Rank2Types
 
   build-depends:
     ghc-prim,
