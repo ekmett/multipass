@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, Rank2Types #-}
+{-# LANGUAGE CPP, GADTs, Rank2Types #-}
 module Data.Pass.Thrist
   ( Thrist(..)
   , thrist
@@ -62,5 +62,9 @@ instance Typeable2 k => Typeable2 (Thrist k) where
           kab = undefined
 
 thristTyCon :: TyCon
+#if MIN_VERSION_base(4,4,0)
 thristTyCon = mkTyCon3 "pass" "Data.Pass.Thrist" "Thrist"
+#else
+thristTyCon = mkTyCon "Data.Pass.Thrist.Thrist"
+#endif
 {-# NOINLINE thristTyCon #-}

@@ -42,7 +42,11 @@ instance Typeable2 k => Typeable2 (Pass k) where
           kab = undefined
 
 calcTyCon :: TyCon
-calcTyCon = mkTyCon3 "pass" "Data.Pass.Pass" "Pass"
+#if MIN_VERSION_base(4,4,0)
+calcTyCon = mkTyCon3 "pass" "Data.Pass.Type" "Pass"
+#else
+calcTyCon = mkTyCon "Data.Pass.Type.Pass"
+#endif
 {-# NOINLINE calcTyCon #-}
 
 instance Prep Pass where

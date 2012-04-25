@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Data.Pass.Fun
   ( Fun(..)
   ) where
@@ -22,7 +23,11 @@ instance Typeable2 k => Typeable2 (Fun k) where
           kab = undefined
 
 funTyCon :: TyCon
-funTyCon = mkTyCon3 "pass" "Data.Pass.Eval" "Fun"
+#if MIN_VERSION_base(4,4,0)
+funTyCon = mkTyCon3 "pass" "Data.Pass.Fun" "Fun"
+#else
+funTyCon = mkTyCon "Data.Pass.Fun.Fun"
+#endif
 {-# NOINLINE funTyCon #-}
 
 instance Call k => Call (Fun k) where
