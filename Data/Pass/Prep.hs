@@ -5,6 +5,8 @@ module Data.Pass.Prep
 
 import Data.Pass.Thrist
 
+infixr 5 `prep`
+
 class Prep t where
   prep :: k a b -> t k b c -> t k a c
 

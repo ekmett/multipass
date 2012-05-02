@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs #-}
 module Data.Pass.Calc
   ( Calc(..)
+  , passes
   ) where
 
 import Control.Category
@@ -13,9 +14,15 @@ import Data.Pass.Prep
 import Data.Pass.Type
 import Data.Pass.Trans
 
+infixl 1 `Step`
+
 data Calc k a b where
   Stop :: b -> Calc k a b
   Step :: Calc k a b -> (b -> Pass k a c) -> Calc k a c
+
+passes :: Calc k a b -> Int
+passes Stop{}     = 0
+passes (Step k _) = passes k + 1
 
 instance Functor (Calc k a) where
   fmap f (Stop b) = Stop (f b)
@@ -24,13 +31,13 @@ instance Functor (Calc k a) where
 instance Applicative (Calc k a) where
   pure = Stop
   Stop f      <*> Stop a      = Stop (f a)
-  Stop f      <*> Step fb kba = Step fb (fmap f . kba)
-  Step fg kgf <*> Stop a      = Step fg (fmap ($a) . kgf)
-  Step fg kgf <*> Step fb kba = Step (liftA2 (,) fg fb) $ \(g, b) -> kgf g <*> kba b
+  Stop f      <*> Step fb kba = fb `Step` fmap f . kba
+  Step fg kgf <*> Stop a      = fg `Step` fmap ($a) . kgf
+  Step fg kgf <*> Step fb kba = liftA2 (,) fg fb `Step` \(g, b) -> kgf g <*> kba b
 
 instance Prep Calc where
   prep _ (Stop b) = Stop b
-  prep t (Step c k) = Step (prep t c) (prep t . k)
+  prep t (Step c k) = prep t c `Step` prep t . k
 
 instance Num b => Num (Calc k a b) where
   (+) = liftA2 (+)
@@ -66,7 +73,7 @@ instance Floating b => Floating (Calc k a b) where
   atanh = fmap atanh
 
 instance Trans Calc where
-  trans t = Step (Stop ()) $ \_ -> trans t
+  trans t = Stop () `Step` \_ -> trans t
 
 instance Call k => Naive (Calc k) where
   naive (Stop b) _    = b

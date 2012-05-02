@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, GADTs, Rank2Types #-}
+{-# LANGUAGE CPP, GADTs, Rank2Types, ScopedTypeVariables #-}
 module Data.Pass.Thrist
   ( Thrist(..)
   , thrist
@@ -37,33 +37,31 @@ instance Category (Thrist k) where
 thrist :: k a b -> Thrist k a b
 thrist k = k :- Nil
 
-instance Call k => Call (Thrist k) where
-  call Nil = id
-  call (f :- xs) = call f . call xs
+instance Named k => Named (Thrist k) where
+  showsFun d (x :- xs) = showParen (d > 5) $ showsFun 6 x . showString " :- " . showsFun 5 xs
+  showsFun _ Nil = showString "Nil"
   hashFunWithSalt k Nil = k
   hashFunWithSalt k (f :- xs) = k `hashFunWithSalt` f `hashWithSalt` xs
   equalFun Nil Nil = True
   equalFun (a :- as) (b :- bs) = equalFun a b && equalFun as bs
   equalFun _ _ = False
 
-instance Named k => Named (Thrist k) where
-  showsFun d (x :- xs) = showParen (d > 5) $ showsFun 6 x . showString " :- " . showsFun 5 xs
-  showsFun _ Nil = showString "Nil"
+instance Call k => Call (Thrist k) where
+  call Nil = id
+  call (f :- xs) = call f . call xs
 
 fromThrist :: Call k => (forall d e. k d e -> c) -> Thrist k a b -> [c]
 fromThrist _ Nil       = []
 fromThrist f (x :- xs) = f x : fromThrist f xs
 
-instance Call k => Eq (Thrist k a b) where
+instance Named k => Eq (Thrist k a b) where
   (==) = equalFun
 
-instance Call k => Hashable (Thrist k a b) where
+instance Named k => Hashable (Thrist k a b) where
   hashWithSalt = hashFunWithSalt
 
 instance Typeable2 k => Typeable2 (Thrist k) where
-  typeOf2 tkab = mkTyConApp thristTyCon [typeOf2 (kab tkab)]
-    where kab :: t k a b -> k a b
-          kab = undefined
+  typeOf2 (_ :: Thrist k a b) = mkTyConApp thristTyCon [typeOf2 (undefined :: k a b)]
 
 thristTyCon :: TyCon
 #if MIN_VERSION_base(4,4,0)
