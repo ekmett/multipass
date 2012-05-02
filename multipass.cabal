@@ -39,6 +39,7 @@ library
     Data.Pass.Calculation
     Data.Pass.Call
     Data.Pass.Class
+    Data.Pass.Estimator
     Data.Pass.Env
     Data.Pass.Eval
     Data.Pass.Eval.Naive
@@ -52,5 +53,8 @@ library
     Data.Pass.Thrist
     Data.Pass.Trans
     Data.Pass.Type
+
+  other-modules:
+    Data.Pass.Util
 
   ghc-options: -Wall

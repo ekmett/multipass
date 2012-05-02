@@ -16,25 +16,25 @@ import Data.Pass
 -- example calculation type
 data Test a b where
   Total  :: Num a => Test a (Sum a)
-  Count  :: Num b => Test a (Sum b)
-  Square :: Num a => Test a a
+  Count  :: Test a (Sum Int)
+  Square :: Test Double Double
   Minus  :: Double -> Test Double Double
-  Abs    :: Num a => Test a a
+  Abs    :: Test Double Double
   deriving Typeable
 
 deriving instance Typeable1 Sum -- :(
 
-count :: (Step t, Typeable b, Num b) => t Test a b
-count = step $ getSum <$> trans Count
+count :: (Step t, Num b) => t Test a b
+count = step $ fromIntegral . getSum <$> trans Count
 
-sumSq :: (Step t, Typeable a, Num a) => t Test a a
-sumSq = prep Square total
+sumSq :: Step t => t Test Double Double
+sumSq = step $ prep Square total
 
 -- E[X^2] - E[X]^2
-var :: (Step t, Typeable a, Fractional a) => t Test a a
+var :: Step t => t Test Double Double
 var = step $ sumSq / count - mean ^ 2
 
-stddev :: (Step t, Typeable a, Floating a) => t Test a a
+stddev :: Step t => t Test Double Double
 stddev = step $ sqrt var
 
 -- > absDev median -- median absolute deviation
@@ -61,7 +61,6 @@ instance Named Test where
   hashFunWithSalt n Square    = n `hashWithSalt` 2
   hashFunWithSalt n (Minus m) = n `hashWithSalt` 3 `hashWithSalt` m
   hashFunWithSalt n Abs       = n `hashWithSalt` 4
-  hashFunWithSalt n Median    = n `hashWithSalt` 5
 
 instance Call Test where
   call Total a = Sum a

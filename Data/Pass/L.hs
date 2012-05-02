@@ -4,6 +4,7 @@
 module Data.Pass.L
   ( L(..)
   , callL
+  , breakdown
   ) where
 
 import Data.Typeable
@@ -11,12 +12,16 @@ import Data.Hashable
 import Data.Pass.Named
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
+import Data.Pass.Estimator
+import Data.Pass.Util (clamp)
+
 
 data L a b where
   LTotal     :: L Double Double
   LMean      :: L Double Double
   LScale     :: L Double Double
   Median     :: L Double Double
+  QuantileBy :: Estimator -> Rational -> L Double Double
   Winsorized :: Rational -> L a Double -> L a Double
   Trimmed    :: Rational -> L a Double -> L a Double
   Jackknifed :: L a Double -> L a Double
@@ -37,6 +42,7 @@ instance Named L where
   showsFun d (Jackknifed f)   = showParen (d > 10) $ showString "Jackknifed "                                 . showsFun 10 f
   showsFun d (x :* y)         = showParen (d > 7) $ showsPrec 8 x . showString " :* " . showsPrec 7 y
   showsFun d (x :+ y)         = showParen (d > 6) $ showsPrec 7 x . showString " :+ " . showsPrec 6 y
+  showsFun d (QuantileBy e q) = showParen (d > 10) $ showString "QuantileBy " . showsPrec 10 e . showChar ' ' . showsPrec 10 q
   hashFunWithSalt n LTotal           = n `hashWithSalt` 0
   hashFunWithSalt n LMean            = n `hashWithSalt` 1
   hashFunWithSalt n LScale           = n `hashWithSalt` 2
@@ -44,17 +50,19 @@ instance Named L where
   hashFunWithSalt n (Winsorized p f) = n `hashWithSalt` 4 `hashWithSalt` p `hashFunWithSalt` f
   hashFunWithSalt n (Trimmed p f)    = n `hashWithSalt` 5 `hashWithSalt` p `hashFunWithSalt` f
   hashFunWithSalt n (Jackknifed f)   = n `hashWithSalt` 6                  `hashFunWithSalt` f
-  hashFunWithSalt n (x :* y) = n `hashWithSalt` x `hashFunWithSalt` y
-  hashFunWithSalt n (x :+ y) = n `hashFunWithSalt` x `hashFunWithSalt` y
+  hashFunWithSalt n (x :* y)         = n `hashWithSalt` 7 `hashWithSalt` x `hashFunWithSalt` y
+  hashFunWithSalt n (x :+ y)         = n `hashWithSalt` 8 `hashFunWithSalt` x `hashFunWithSalt` y
+  hashFunWithSalt n (QuantileBy e q) = n `hashWithSalt` 9 `hashWithSalt` e `hashWithSalt` q
   equalFun LTotal LTotal = True
-  equalFun LMean LMean = True
+  equalFun LMean  LMean  = True
   equalFun LScale LScale = True
   equalFun Median Median = True
   equalFun (Winsorized p f) (Winsorized q g) = p == q && equalFun f g
-  equalFun (Trimmed p f) (Trimmed q g) = p == q && equalFun f g
-  equalFun (Jackknifed f) (Jackknifed g) = equalFun f g
-  equalFun (a :+ b) (c :+ d) = equalFun a c && equalFun b d
-  equalFun (a :* b) (c :* d) = a == c && equalFun b d
+  equalFun (Trimmed p f) (Trimmed q g)       = p == q && equalFun f g
+  equalFun (Jackknifed f) (Jackknifed g)     = equalFun f g
+  equalFun (a :+ b) (c :+ d)                 = equalFun a c && equalFun b d
+  equalFun (a :* b) (c :* d)                 = a == c && equalFun b d
+  equalFun (QuantileBy e p) (QuantileBy f q) = e == f && p == q
   equalFun _ _ = False
 
 instance Show (L a b) where
@@ -69,6 +77,10 @@ instance Eq (L a b) where
 callL :: L a a -> Int -> IntMap a
 callL (x :+ y) n = IM.unionWith (+) (callL x n) (callL y n)
 callL (s :* y) n = fmap (s*) (callL y n)
+callL (QuantileBy f p) n = case estimateBy f p n of
+  Estimate h qp -> case properFraction h of
+    (w, 0) -> IM.singleton (clamp n (w - 1)) 1
+    _      -> qp
 callL Median n = case quotRem n 2 of
   (k, 0) -> IM.fromDistinctAscList [(k-1,0.5),(k,0.5)]
   (k, _) -> IM.singleton k 1
@@ -93,3 +105,9 @@ callL (Jackknifed g) n = IM.fromAscListWith (+) $ do
   (k, v) <- IM.toAscList $ callL g (n - 1)
   let k' = fromIntegral k + 1
   [(k, (n' - k') * v / n'), (k + 1, k' * v / n')]
+
+breakdown :: (Num a, Eq a) => L a a -> Int
+breakdown f
+  | IM.null m = 50
+  | otherwise = fst (IM.findMin m) `min` (100 - fst (IM.findMax m))
+  where m = IM.filter (/= 0) $ callL f 101

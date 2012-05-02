@@ -1,20 +1,29 @@
 module Data.Pass
-  ( Thrist(..), thrist
+  ( Thrist(..)
+  , thrist
   , Accelerated(..)
   , Accelerant(..)
   , Prep(..)
-  , Calc(..), passes
+  , Calc(..)
+  , passes
   , Calculation(..)
   , Pass(..)
-  , Passable(..), env
+  , Passable(..)
+  , env
   , Eval(..)
-  , Naive(..)
-  , Step(..)
+  , Naive(..), (@@@)
   , Call(..)
   , Named(..)
   , Trans(..)
-  , L(..)
+  , L(..), breakdown, Estimator(..)
   , Robust(..)
+  , quantile
+  , tercile, t1, t2
+  , quartile, q1, q2, q3
+  , quintile, qu1, qu2, qu3, qu4
+  , percentile
+  , permille
+  , Step(..), midhinge, trimean, iqr, iqm
   ) where
 
 import Data.Pass.Calc
@@ -23,6 +32,7 @@ import Data.Pass.Accelerated
 import Data.Pass.Calculation
 import Data.Pass.Call
 import Data.Pass.Class
+import Data.Pass.Estimator
 import Data.Pass.Eval
 import Data.Pass.Eval.Naive
 import Data.Pass.Named
