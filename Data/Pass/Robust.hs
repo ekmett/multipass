@@ -6,6 +6,7 @@ module Data.Pass.Robust
   , quintile, qu1, qu2, qu3, qu4
   , percentile
   , permille
+  , iqm
   ) where
 
 import Data.Pass.Type
@@ -36,6 +37,21 @@ class Robust l where
 
   quantileBy :: Estimator -> Rational -> l Double Double
   quantileBy e q = robust $ QuantileBy e q
+
+  midhinge :: l Double Double
+  midhinge = robust $ 0.5 :* (q1 :+ q3)
+
+  -- | Tukey's trimean
+  trimean :: l Double Double
+  trimean = robust $ 0.25 :* (q1 :+ 2 :* q2 :+ q3)
+
+  -- | interquartile range
+  iqr :: l Double Double
+  iqr = robust $ ((-1) :* q1) :+ q3
+
+-- | interquartile mean
+iqm :: Robust l => l Double Double
+iqm = trimmed 0.25 LMean
 
 quantile :: Robust l => Rational -> l Double Double
 quantile = quantileBy R2
@@ -83,6 +99,12 @@ instance Robust l => Robust (Fun l) where
 
 instance Robust (Pass k) where
   robust l = L id l Nil
+  midhinge = (q1 + q3) / 2
+  trimean  = (q1 + 2 * q2 + q3) / 4
+  iqr      = q3 - q1
 
 instance Robust (Calc k) where
-  robust l = Stop () `Step` \_ -> robust l
+  robust l = Stop () `Step` const (robust l)
+  midhinge = Stop () `Step` const midhinge
+  trimean  = Stop () `Step` const trimean
+  iqr      = Stop () `Step` const iqr

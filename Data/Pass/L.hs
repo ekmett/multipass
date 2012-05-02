@@ -5,6 +5,7 @@ module Data.Pass.L
   ( L(..)
   , callL
   , breakdown
+  , (@#)
   ) where
 
 import Data.Typeable
@@ -15,6 +16,9 @@ import qualified Data.IntMap as IM
 import Data.Pass.Estimator
 import Data.Pass.Util (clamp)
 
+(@#) :: Num a => L a a -> Int -> [a]
+f @# n = [ IM.findWithDefault 0 k fn | k <- [0..n-1] ]
+  where fn = callL f n
 
 data L a b where
   LTotal     :: L Double Double

@@ -15,7 +15,7 @@ module Data.Pass
   , Call(..)
   , Named(..)
   , Trans(..)
-  , L(..), breakdown, Estimator(..)
+  , L(..), (@#), breakdown, Estimator(..)
   , Robust(..)
   , quantile
   , tercile, t1, t2
@@ -23,7 +23,8 @@ module Data.Pass
   , quintile, qu1, qu2, qu3, qu4
   , percentile
   , permille
-  , Step(..), midhinge, trimean, iqr, iqm
+  , iqm
+  , Step(..)
   ) where
 
 import Data.Pass.Calc
