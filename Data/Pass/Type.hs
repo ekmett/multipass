@@ -100,15 +100,17 @@ instance Floating b => Floating (Pass k a b) where
   atanh = fmap atanh
 
 instance Call k => Naive (Pass k) where
-  naive (Pure b)     _  = b
-  naive (Ap k mf mx) as = k $ naive mf as $ naive mx as
-  naive (Pass k t)   as = k $ foldMap (call t) as
-  naive (L k m i)  as = k $ foldrWithKey step 0 stats
-    where
-      step g v a = IntMap.findWithDefault 0 g coefs * v + a
-      stats = sort $ map (call i) xs
-      coefs = callL m $ length xs
-      xs = toList as
+  naive f as = naivePass f xs (length xs) where xs = toList as
+
+naivePass :: Call k => Pass k a b -> [a] -> Int -> b
+naivePass (Pure b)     _  _ = b
+naivePass (Ap k mf mx) xs n = k $ naivePass mf xs n $ naivePass mx xs n
+naivePass (Pass k t)   xs _ = k $ foldMap (call t) xs
+naivePass (L k m i)    xs n = k $ foldrWithKey step 0 stats
+  where
+      step g v x = IntMap.findWithDefault 0 g coefs * v + x
+      stats = sort $ call i <$> xs
+      coefs = callL m n
 
 env :: Call k => Pass k a b -> Env k a
 env = envWith Env.empty

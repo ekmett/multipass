@@ -13,3 +13,12 @@ class Accelerant k where
 
   totalPass :: Pass k Double Double
   totalPass = robust LTotal
+
+  largestPass :: Pass k Double Double
+  largestPass = robust (NthLargest 0)
+
+  smallestPass :: Pass k Double Double
+  smallestPass = robust (NthSmallest 0)
+
+  midrangePass :: Pass k Double Double
+  midrangePass = largestPass - smallestPass

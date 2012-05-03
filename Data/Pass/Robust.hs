@@ -14,7 +14,7 @@ import Data.Pass.Calc
 import Data.Pass.Fun
 import Data.Pass.Thrist
 import Data.Pass.L
-import Data.Pass.Estimator
+import Data.Pass.L.Estimator
 
 -- | embedding for L-estimators
 class Robust l where
@@ -48,6 +48,10 @@ class Robust l where
   -- | interquartile range
   iqr :: l Double Double
   iqr = robust $ ((-1) :* q1) :+ q3
+
+  -- Harrell-Davis quantile estimator
+  hdquantile :: Rational -> l Double Double
+  hdquantile p = robust $ HarrellDavis p
 
 -- | interquartile mean
 iqm :: Robust l => l Double Double

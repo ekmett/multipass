@@ -33,7 +33,6 @@ import Data.Pass.Accelerated
 import Data.Pass.Calculation
 import Data.Pass.Call
 import Data.Pass.Class
-import Data.Pass.Estimator
 import Data.Pass.Eval
 import Data.Pass.Eval.Naive
 import Data.Pass.Named
@@ -43,4 +42,5 @@ import Data.Pass.Trans
 import Data.Pass.Type
 import Data.Pass.Step
 import Data.Pass.L
+import Data.Pass.L.Estimator
 import Data.Pass.Robust

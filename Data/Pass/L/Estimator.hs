@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, PatternGuards #-}
-module Data.Pass.Estimator
+module Data.Pass.L.Estimator
   ( Estimator(..)
   , Estimate(..)
   , estimateBy
@@ -12,7 +12,19 @@ import Data.IntMap (IntMap)
 import Data.Pass.Util (clamp)
 import Data.Hashable
 
-data Estimator = R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8 | R9 | R10
+-- | Techniques used to smooth the nearest values when calculating quantile functions. R2 is used by default, and the numbering convention follows the 
+-- use in the R programming language, as far as it goes.
+data Estimator
+  = R1  -- ^ Inverse of the empirical distribution function
+  | R2  -- ^ .. with averaging at discontinuities (default)
+  | R3  -- ^ The observation numbered closest to Np. NB: does not yield a proper median
+  | R4  -- ^ Linear interpolation of the empirical distribution function. NB: does not yield a proper median.
+  | R5  -- ^ .. with knots midway through the steps as used in hydrology. This is the simplest continuous estimator that yields a correct median
+  | R6  -- ^ Linear interpolation of the expectations of the order statistics for the uniform distribution on [0,1]
+  | R7  -- ^ Linear interpolation of the modes for the order statistics for the uniform distribution on [0,1]
+  | R8  -- ^ Linear interpolation of the approximate medans for order statistics.
+  | R9  -- ^ The resulting quantile estimates are approximately unbiased for the expected order statistics if x is normally distributed.
+  | R10 -- ^ When rounding h, this yields the order statistic with the least expected square deviation relative to p.
   deriving (Eq,Ord,Enum,Bounded,Data,Typeable,Show,Read)
 
 instance Hashable Estimator where
