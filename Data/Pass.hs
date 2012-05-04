@@ -1,30 +1,56 @@
 module Data.Pass
-  ( Thrist(..)
-  , thrist
-  , Accelerated(..)
-  , Accelerant(..)
-  , Prep(..)
-  , Calc(..)
-  , passes
-  , Calculation(..)
+  (
+  -- * Evaluation
+    Eval(..)
+  , Naive(..)
+
+  -- * Single pass calculations
   , Pass(..)
   , Passable(..)
-  , Eval(..)
-  , Naive(..), (@@@)
-  , Call(..)
-  , Named(..)
-  , Trans(..)
-  , L(..), (@#), breakdown
-  , Robust(..)
+
+  -- ** Embedding single pass calculations
+  , Step(..)
+
+  -- * Multipass calculations
+  , Calc(..)
+  , Calculation(..)
+  , passes
+  , (@@@)
+
+  -- * Input conditioning
+  , Prep(..)
+
+  -- * L-Estimators (calculations based on order statistics)
+  , L(..)
+  , (@#)
+  , breakdown
   , iqm
+
+  -- ** Quantile estimators
+  , Estimator(..)
+  , By(..)
+
+  -- ** Robust statistics
+  , Robust(..)
   , median
   , tercile, t1, t2
   , quartile, q1, q2, q3
   , quintile, qu1, qu2, qu3, qu4
   , percentile
   , permille
-  , Estimator(..), By(..)
-  , Step(..)
+
+  -- ** Acceleration for non-robust L-estimators
+  , Accelerated(..)
+
+  -- * Implementation Details
+  , Thrist(..)
+  , thrist
+  , Trans(..)
+
+  -- ** Classes required for user-defined calculations
+  , Call(..)
+  , Named(..)
+  , Accelerant(..)
   ) where
 
 import Data.Pass.Calc

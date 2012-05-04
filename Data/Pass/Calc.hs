@@ -17,16 +17,17 @@ import Data.Pass.Prep
 import Data.Pass.Type
 import Data.Pass.Trans
 
-infixl 1 `Step`
-
 data Calc k a b where
   Stop :: b -> Calc k a b
   Step :: Calc k a b -> (b -> Pass k a c) -> Calc k a c
+
+infixl 1 `Step`
 
 instance By (Calc k) where
   by (Step x f) r = by x r `Step` \b -> by (f b) r
   by x _ = x
 
+-- | Return the number of passes over the data required to compute the result
 passes :: Calc k a b -> Int
 passes Stop{}     = 0
 passes (Step k _) = passes k + 1
