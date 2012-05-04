@@ -9,7 +9,6 @@ module Data.Pass
   , Calculation(..)
   , Pass(..)
   , Passable(..)
-  , env
   , Eval(..)
   , Naive(..), (@@@)
   , Call(..)

@@ -7,7 +7,6 @@ module Data.Pass.Util.Beta
 
 import Numeric.SpecFunctions
 import Numeric.MathFunctions.Constants (m_NaN)
-import Data.Typeable
 
 data Beta = Beta {-# UNPACK #-} !Double {-# UNPACK #-} !Double
   deriving (Eq,Read,Show)
