@@ -30,7 +30,7 @@ import Data.Pass.L.By
 
 data Pass k a b where
   Pass :: (Monoid m, Typeable m) => (m -> o) -> Thrist k i m -> Pass k i o
-  L    :: (Ord n, Fractional n) => (n -> o) -> L n n -> Thrist k i n -> Pass k i o
+  L    :: (n -> o) -> L n n -> Thrist k i n -> Pass k i o
   Ap   :: (b -> c) -> Pass k i (a -> b) -> Pass k i a -> Pass k i c
   Pure :: a -> Pass k i a
 
@@ -112,10 +112,10 @@ naivePass :: Call k => Pass k a b -> [a] -> Int -> b
 naivePass (Pure b)     _  _ = b
 naivePass (Ap k mf mx) xs n = k $ naivePass mf xs n $ naivePass mx xs n
 naivePass (Pass k t)   xs _ = k $ foldMap (call t) xs
-naivePass (L k m i)    xs n = k $ foldrWithKey step 0 stats
+naivePass (L k m i)    xs n = k $ ordL m $ foldrWithKey step 0 stats
   where
-      step g v x = IntMap.findWithDefault 0 g coefs * v + x
-      stats = sort $ call i <$> xs
+      step g v x = ordL m $ IntMap.findWithDefault 0 g coefs * v + x
+      stats = ordL m $ sort $ call i <$> xs
       coefs = callL m n
 
 env :: Call k => Pass k a b -> Env k a

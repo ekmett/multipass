@@ -4,6 +4,8 @@
 module Data.Pass.L
   ( L(..)
   , callL
+  , ordL
+  , eqL
   , breakdown
   , (@#)
   ) where
@@ -29,20 +31,19 @@ infixl 0 @#
 f @# n = [ IM.findWithDefault 0 k fn | k <- [0..n-1] ]
   where fn = callL f n
 
-
 -- | An L-Estimator represents a linear combination of order statistics
 data L a b where
-  LTotal       :: L Double Double
-  LMean        :: L Double Double
-  LScale       :: L Double Double
-  NthLargest   :: Int -> L Double Double
-  NthSmallest  :: Int -> L Double Double
-  QuantileBy   :: Estimator -> Rational -> L Double Double
-  Winsorized   :: Rational -> L a Double -> L a Double
-  Trimmed      :: Rational -> L a Double -> L a Double
-  Jackknifed   :: L a Double -> L a Double
-  (:*)         :: Double -> L a Double -> L a Double
-  (:+)         :: L a Double -> L a Double -> L a Double
+  LTotal       :: (Num a, Ord a) => L a a
+  LMean        :: (Fractional a, Ord a) => L a a
+  LScale       :: (Fractional a, Ord a) => L a a
+  NthLargest   :: (Num a, Ord a) => Int -> L a a
+  NthSmallest  :: (Num a, Ord a) => Int -> L a a
+  QuantileBy   :: (Fractional a, Ord a) => Estimator -> Rational -> L a a
+  Winsorized   :: (Fractional b, Ord b) => Rational -> L a b -> L a b
+  Trimmed      :: (Fractional b, Ord b) => Rational -> L a b -> L a b
+  Jackknifed   :: (Fractional b, Ord b) => L a b -> L a b
+  (:*)         :: Fractional b => Rational -> L a b -> L a b
+  (:+)         :: Num b => L a b -> L a b -> L a b
   deriving Typeable
 
 instance By L where
@@ -92,7 +93,7 @@ instance Named L where
   equalFun (NthLargest n)  (NthLargest m)    = n == m
   equalFun (NthSmallest n) (NthSmallest m)   = n == m
   equalFun (a :+ b) (c :+ d)                 = equalFun a c && equalFun b d
-  equalFun (a :* b) (c :* d)                 = a == c && equalFun b d
+  equalFun (a :* b) (c :* d)                 = typeOf a == typeOf c && cast a == Just c && equalFun b d
   equalFun _ _ = False
 
 
@@ -137,10 +138,10 @@ callL (Jackknifed g) n = IM.fromAscListWith (+) $ do
 callL (NthLargest m) n  = IM.singleton (clamp n (n - m - 1)) 1
 callL (NthSmallest m) n = IM.singleton (clamp n m) 1
 callL (x :+ y) n = IM.unionWith (+) (callL x n) (callL y n)
-callL (s :* y) n = fmap (s*) (callL y n)
+callL (s :* y) n = fmap (r *) (callL y n) where r = fromRational s
 
 -- | A common measure of how robust an L estimator is in the presence of outliers.
-breakdown :: (Num a, Eq a) => L a a -> Int
+breakdown :: (Num b, Eq b) => L a b -> Int
 breakdown f
   | IM.null m = 50
   | otherwise = fst (IM.findMin m) `min` (100 - fst (IM.findMax m))
@@ -162,6 +163,7 @@ eqL (NthSmallest _) a = a
 eqL (QuantileBy _ _) a = a
 eqL (Winsorized _ x) a = eqL x a
 eqL (Jackknifed x) a = eqL x a
+eqL (Trimmed _ x) a = eqL x a
 eqL (x :+ _) a = eqL x a
 eqL (_ :* x) a = eqL x a
 
@@ -173,6 +175,7 @@ ordL (NthLargest _) a = a
 ordL (NthSmallest _) a = a
 ordL (QuantileBy _ _) a = a
 ordL (Winsorized _ x) a = ordL x a
+ordL (Trimmed _ x) a = ordL x a
 ordL (Jackknifed x) a = ordL x a
 ordL (x :+ _) a = ordL x a
 ordL (_ :* x) a = ordL x a

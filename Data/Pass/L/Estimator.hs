@@ -33,13 +33,14 @@ data Estimator
 instance Hashable Estimator where
   hashWithSalt n e = n `hashWithSalt` fromEnum e
 
-data Estimate = Estimate {-# UNPACK #-} !Rational (IntMap Double)
+data Estimate r = Estimate {-# UNPACK #-} !Rational (IntMap r)
   deriving Show
 
 continuousEstimator ::
+  Fractional r =>
   (Rational -> (Rational, Rational)) ->
   (Rational -> Rational -> Rational) ->
-  Rational -> Int -> Estimate 
+  Rational -> Int -> Estimate r
 continuousEstimator bds f p n = Estimate h $
   if p < lo then IM.singleton 0 1
   else if p >= hi then IM.singleton (n - 1) 1
@@ -50,7 +51,7 @@ continuousEstimator bds f p n = Estimate h $
     h = f p r
     (lo, hi) = bds r
 
-estimateBy :: Estimator -> Rational -> Int -> Estimate
+estimateBy :: Fractional r => Estimator -> Rational -> Int -> Estimate r
 estimateBy HD = \q n -> Estimate (1%2) $ let
     n' = fromIntegral n
     np1 = n' + 1
@@ -58,15 +59,15 @@ estimateBy HD = \q n -> Estimate (1%2) $ let
     d = Beta (q'*np1) (np1*(1-q'))
   in if q == 0 then IM.singleton 0 1
   else if q == 1 then IM.singleton (n - 1) 1
-  else IM.fromAscList
+  else IM.fromListWith (+)
     [ (i, realToFrac $ Beta.cumulative d ((fromIntegral i + 1) / n') - Beta.cumulative d (fromIntegral i / n'))
-    | i <- [0 .. n - 1]
+    | i <- [0 .. n-1]
     ]
 estimateBy R1  = \p n -> let np = fromIntegral n * p in Estimate (np + 1%2) $ IM.singleton (clamp n (ceiling np - 1)) 1
 estimateBy R2  = \p n -> let np = fromIntegral n * p in Estimate (np + 1%2) $
   if p == 0      then IM.singleton 0       1
   else if p == 1 then IM.singleton (n - 1) 1
-  else IM.fromList [(ceiling np - 1, 0.5), (floor np, 0.5)]
+  else IM.fromListWith (+) [(clamp n (ceiling np - 1), 0.5), (clamp n (floor np), 0.5)]
 estimateBy R3  = \p n -> let np = fromIntegral n * p in Estimate np $ IM.singleton (clamp n (round np - 1)) 1
 estimateBy R4  = continuousEstimator (\n -> (recip n, 1)) (*)
 estimateBy R5  = continuousEstimator (\n -> let tn = 2 * n in (recip tn, (tn - 1) / tn)) $ \p n -> p*n + 0.5
