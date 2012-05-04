@@ -2,7 +2,6 @@ module Data.Pass.Accelerated
   ( Accelerated(..)
   ) where
 
-import Data.Typeable
 import Data.Pass.Type
 import Data.Pass.Calc
 import Data.Pass.L

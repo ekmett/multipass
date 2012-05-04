@@ -97,6 +97,15 @@ instance Named Test where
   showsFun _ Largest   = showString "Largest"
   showsFun _ Smallest  = showString "Smallest"
 
+{-
+  putFun Total     = put (0 :: Word8)
+  putFun Count     = put (1 :: Word8)
+  putFun Square    = put (2 :: Word8)
+  putFun (Minus m) = put (3 :: Word8) >> put m
+  putFun Abs       = put (4 :: Word8)
+  putFun Largest   = put (5 :: Word8)
+  putFun Smallest  = put (6 :: Word8)
+
   equalFun Total Total         = True
   equalFun Count Count         = True
   equalFun Square Square       = True
@@ -113,14 +122,8 @@ instance Named Test where
   hashFunWithSalt n Abs       = n `hashWithSalt` 4
   hashFunWithSalt n Largest   = n `hashWithSalt` 5
   hashFunWithSalt n Smallest  = n `hashWithSalt` 6
+-}
 
-  putFun Total     = put (0 :: Word8)
-  putFun Count     = put (1 :: Word8)
-  putFun Square    = put (2 :: Word8)
-  putFun (Minus m) = put (3 :: Word8) >> put m
-  putFun Abs       = put (4 :: Word8)
-  putFun Largest   = put (5 :: Word8)
-  putFun Smallest  = put (6 :: Word8)
 
 instance Call Test where
   call Total a = Sum a

@@ -7,12 +7,13 @@ module Data.Pass.Env
   ) where
 
 import Control.Applicative hiding (empty)
-import Prelude hiding (lookup)
-import Data.Monoid (Monoid(..), (<>))
-import Data.Typeable
+import Data.Binary
 import qualified Data.HashMap.Strict as HashMap
 import Data.HashMap.Strict (HashMap)
+import Data.Monoid (Monoid(..), (<>))
+import Data.Typeable
 import GHC.Prim (Any)
+import Prelude hiding (lookup)
 import Unsafe.Coerce
 import Data.Pass.Call
 import Data.Pass.Key
@@ -42,10 +43,10 @@ instance Named k => Show (Env k a) where
 empty :: Env k a
 empty = Env HashMap.empty
 
-lookup :: (Call k, Typeable b, Monoid b) => Thrist k a b -> Env k a -> Maybe b
+lookup :: (Call k, Typeable b, Binary b, Monoid b) => Thrist k a b -> Env k a -> Maybe b
 lookup k (Env m) = unsafeCoerce <$> HashMap.lookup (Key k) m
 
-insert :: (Call k, Typeable b, Monoid b) => Thrist k a b -> b -> Env k a -> Env k a
+insert :: (Call k, Typeable b, Binary b, Monoid b) => Thrist k a b -> b -> Env k a -> Env k a
 insert k v (Env m) = Env $ HashMap.insert (Key k) (unsafeCoerce v) m
 
 cons :: Call k => a -> Env k a -> Env k a

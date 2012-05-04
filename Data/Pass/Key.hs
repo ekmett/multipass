@@ -4,6 +4,7 @@ module Data.Pass.Key
   ) where
 
 import Prelude hiding (lookup)
+import Data.Binary
 import Data.Typeable
 import Data.Hashable
 import Data.Monoid
@@ -11,7 +12,7 @@ import Data.Pass.Thrist
 import Data.Pass.Named
 
 data Key k a where
-  Key :: (Typeable b, Monoid b) => Thrist k a b -> Key k a
+  Key :: (Typeable b, Binary b, Monoid b) => Thrist k a b -> Key k a
 
 instance Named k => Eq (Key k a) where
   Key (x :: Thrist k a b) == Key (y :: Thrist k a c) = equalFun x y && typeOf (undefined :: b) == typeOf (undefined :: c)

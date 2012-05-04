@@ -2,7 +2,6 @@ module Data.Pass.Accelerant
   ( Accelerant(..)
   ) where
 
-import Data.Typeable
 import Data.Pass.Type
 import Data.Pass.L
 import Data.Pass.Robust

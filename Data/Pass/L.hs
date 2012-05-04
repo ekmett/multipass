@@ -1,5 +1,4 @@
-{-# LANGUAGE GADTs, DeriveDataTypeable, ExtendedDefaultRules, PatternGuards, Rank2Types #-}
-{-# OPTIONS_GHC -fno-warn-type-defaults #-}
+{-# LANGUAGE GADTs, DeriveDataTypeable, PatternGuards, Rank2Types #-}
 
 module Data.Pass.L
   ( L(..)
@@ -67,17 +66,17 @@ instance Named L where
   showsFun d (x :* y)         = showParen (d > 7) $ showsPrec 8 x . showString " :* " . showsPrec 7 y
   showsFun d (x :+ y)         = showParen (d > 6) $ showsPrec 7 x . showString " :+ " . showsPrec 6 y
 
-  hashFunWithSalt n LTotal           = n `hashWithSalt` 0
-  hashFunWithSalt n LMean            = n `hashWithSalt` 1
-  hashFunWithSalt n LScale           = n `hashWithSalt` 2
-  hashFunWithSalt n (QuantileBy e q) = n `hashWithSalt` 4  `hashWithSalt` e `hashWithSalt` q
-  hashFunWithSalt n (Winsorized p f) = n `hashWithSalt` 5  `hashWithSalt` p `hashFunWithSalt` f
-  hashFunWithSalt n (Trimmed p f)    = n `hashWithSalt` 6  `hashWithSalt` p `hashFunWithSalt` f
-  hashFunWithSalt n (Jackknifed f)   = n `hashWithSalt` 7                  `hashFunWithSalt` f
-  hashFunWithSalt n (NthLargest m)   = n `hashWithSalt` 8  `hashWithSalt` m
-  hashFunWithSalt n (NthSmallest m)  = n `hashWithSalt` 9  `hashWithSalt` m
-  hashFunWithSalt n (x :* y)         = n `hashWithSalt` 10 `hashWithSalt` x `hashFunWithSalt` y
-  hashFunWithSalt n (x :+ y)         = n `hashWithSalt` 11 `hashFunWithSalt` x `hashFunWithSalt` y
+  hashFunWithSalt n LTotal           = 0 `hashWithSalt` n
+  hashFunWithSalt n LMean            = 1 `hashWithSalt` n
+  hashFunWithSalt n LScale           = 2 `hashWithSalt` n
+  hashFunWithSalt n (QuantileBy e q) = 4 `hashWithSalt` n  `hashWithSalt` e `hashWithSalt` q
+  hashFunWithSalt n (Winsorized p f) = 5 `hashWithSalt` n  `hashWithSalt` p `hashFunWithSalt` f
+  hashFunWithSalt n (Trimmed p f)    = 6 `hashWithSalt` n  `hashWithSalt` p `hashFunWithSalt` f
+  hashFunWithSalt n (Jackknifed f)   = 7 `hashWithSalt` n                  `hashFunWithSalt` f
+  hashFunWithSalt n (NthLargest m)   = 8 `hashWithSalt` n  `hashWithSalt` m
+  hashFunWithSalt n (NthSmallest m)  = 9 `hashWithSalt` n  `hashWithSalt` m
+  hashFunWithSalt n (x :* y)         = 10 `hashWithSalt` n `hashWithSalt` x `hashFunWithSalt` y
+  hashFunWithSalt n (x :+ y)         = 11 `hashWithSalt` n `hashFunWithSalt` x `hashFunWithSalt` y
 
   equalFun LTotal LTotal = True
   equalFun LMean  LMean  = True
