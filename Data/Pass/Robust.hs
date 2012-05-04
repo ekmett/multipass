@@ -1,12 +1,12 @@
 module Data.Pass.Robust
   ( Robust(..)
-  , quantile
+  , median
+  , iqm
   , tercile, t1, t2
   , quartile, q1, q2, q3
   , quintile, qu1, qu2, qu3, qu4
   , percentile
   , permille
-  , iqm
   ) where
 
 import Data.Pass.Type
@@ -29,14 +29,11 @@ class Robust l where
   jackknifed :: L Double Double -> l Double Double
   jackknifed f = robust $ Jackknifed f
 
-  median :: l Double Double
-  median = robust Median
-
   lscale :: l Double Double
   lscale = robust LScale
 
-  quantileBy :: Estimator -> Rational -> l Double Double
-  quantileBy e q = robust $ QuantileBy e q
+  quantile :: Robust l => Rational -> l Double Double
+  quantile p = robust $ QuantileBy R2 p
 
   midhinge :: l Double Double
   midhinge = robust $ 0.5 :* (q1 :+ q3)
@@ -49,26 +46,20 @@ class Robust l where
   iqr :: l Double Double
   iqr = robust $ ((-1) :* q1) :+ q3
 
-  -- Harrell-Davis quantile estimator
-  hdquantile :: Rational -> l Double Double
-  hdquantile p = robust $ HarrellDavis p
-
 -- | interquartile mean
 iqm :: Robust l => l Double Double
 iqm = trimmed 0.25 LMean
 
-quantile :: Robust l => Rational -> l Double Double
-quantile = quantileBy R2
+median :: Robust l => l Double Double
+median = quantile 0.5
 
 tercile :: Robust l => Rational -> l Double Double
 tercile n = quantile (n/3)
 
 -- | terciles 1 and 2
---
--- > breakdown t1 = breakdown t2 = 33%
 t1, t2 :: Robust l => l Double Double
-t1 = quantile (1/3)
-t2 = quantile (2/3)
+t1 = tercile 1
+t2 = tercile 2
 
 quartile :: Robust l => Rational -> l Double Double
 quartile n = quantile (n/4)

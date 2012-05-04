@@ -52,6 +52,7 @@ library
     Data.Pass.Fun
     Data.Pass.Key
     Data.Pass.L
+    Data.Pass.L.By
     Data.Pass.L.Estimator
     Data.Pass.Named
     Data.Pass.Prep

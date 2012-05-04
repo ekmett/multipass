@@ -15,15 +15,16 @@ module Data.Pass
   , Call(..)
   , Named(..)
   , Trans(..)
-  , L(..), (@#), breakdown, Estimator(..)
+  , L(..), (@#), breakdown
   , Robust(..)
-  , quantile
+  , iqm
+  , median
   , tercile, t1, t2
   , quartile, q1, q2, q3
   , quintile, qu1, qu2, qu3, qu4
   , percentile
   , permille
-  , iqm
+  , Estimator(..), By(..)
   , Step(..)
   ) where
 
@@ -42,5 +43,6 @@ import Data.Pass.Trans
 import Data.Pass.Type
 import Data.Pass.Step
 import Data.Pass.L
+import Data.Pass.L.By
 import Data.Pass.L.Estimator
 import Data.Pass.Robust

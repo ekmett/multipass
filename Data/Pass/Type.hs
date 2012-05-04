@@ -26,12 +26,18 @@ import qualified Data.Pass.Env as Env
 import Data.Pass.Env (Env)
 import Data.Pass.Trans
 import Data.Pass.L
+import Data.Pass.L.By
 
 data Pass k a b where
   Pass :: (Monoid m, Typeable m) => (m -> o) -> Thrist k i m -> Pass k i o
   L    :: (Ord n, Fractional n) => (n -> o) -> L n n -> Thrist k i n -> Pass k i o
   Ap   :: (b -> c) -> Pass k i (a -> b) -> Pass k i a -> Pass k i c
   Pure :: a -> Pass k i a
+
+instance By (Pass k) where
+  by (Ap k mf ma) r = Ap k (by mf r) (by ma r)
+  by (L k m i) r = L k (by m r) i
+  by x _ = x
 
 instance Trans Pass where
   trans t = Pass id (trans t)

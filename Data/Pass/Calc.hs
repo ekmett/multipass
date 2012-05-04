@@ -12,6 +12,7 @@ import Data.Foldable
 import Data.Pass.Call
 import Data.Pass.Eval
 import Data.Pass.Eval.Naive
+import Data.Pass.L.By
 import Data.Pass.Prep
 import Data.Pass.Type
 import Data.Pass.Trans
@@ -21,6 +22,10 @@ infixl 1 `Step`
 data Calc k a b where
   Stop :: b -> Calc k a b
   Step :: Calc k a b -> (b -> Pass k a c) -> Calc k a c
+
+instance By (Calc k) where
+  by (Step x f) r = by x r `Step` \b -> by (f b) r
+  by x _ = x
 
 passes :: Calc k a b -> Int
 passes Stop{}     = 0
@@ -85,7 +90,7 @@ instance Call k => Eval (Calc k) where
   Stop b   @@ _  = b
   Step i k @@ xs = k (i @@ xs) @@ xs
 
-infixr 5 @@@
+infixl 0 @@@
 
 (@@@) :: (Call k, Foldable f) => Calc k a b -> f a -> b
 (@@@) = naive

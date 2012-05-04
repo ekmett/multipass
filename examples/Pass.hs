@@ -72,3 +72,8 @@ instance Call Test where
 instance Accelerant Test where
   totalPass = getSum <$> trans Total
   meanPass  = total / count
+
+infixl 0 @!
+
+(@!) :: Calc Test a b -> [a] -> b
+(@!) = naive

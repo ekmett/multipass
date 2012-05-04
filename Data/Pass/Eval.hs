@@ -4,7 +4,7 @@ module Data.Pass.Eval
 
 import Data.Foldable
 
-infixr 5 @@
+infixl 0 @@
 
 class Eval k where
   (@@) :: Foldable f => k a b -> f a -> b

@@ -11,6 +11,8 @@ import qualified Data.IntMap as IM
 import Data.IntMap (IntMap)
 import Data.Pass.Util (clamp)
 import Data.Hashable
+import Data.Pass.Util.Beta (Beta(Beta))
+import qualified Data.Pass.Util.Beta as Beta
 
 -- | Techniques used to smooth the nearest values when calculating quantile functions. R2 is used by default, and the numbering convention follows the 
 -- use in the R programming language, as far as it goes.
@@ -25,6 +27,7 @@ data Estimator
   | R8  -- ^ Linear interpolation of the approximate medans for order statistics.
   | R9  -- ^ The resulting quantile estimates are approximately unbiased for the expected order statistics if x is normally distributed.
   | R10 -- ^ When rounding h, this yields the order statistic with the least expected square deviation relative to p.
+  | HD  -- ^ The Harrell-Davis quantile estimator based on bootstrapped order statistics
   deriving (Eq,Ord,Enum,Bounded,Data,Typeable,Show,Read)
 
 instance Hashable Estimator where
@@ -48,6 +51,17 @@ continuousEstimator bds f p n = Estimate h $
     (lo, hi) = bds r
 
 estimateBy :: Estimator -> Rational -> Int -> Estimate
+estimateBy HD = \q n -> Estimate (1%2) $ let
+    n' = fromIntegral n
+    np1 = n' + 1
+    q' = fromRational q
+    d = Beta (q'*np1) (np1*(1-q'))
+  in if q == 0 then IM.singleton 0 1
+  else if q == 1 then IM.singleton (n - 1) 1
+  else IM.fromAscList
+    [ (i, realToFrac $ Beta.cumulative d ((fromIntegral i + 1) / n') - Beta.cumulative d (fromIntegral i / n'))
+    | i <- [0 .. n - 1]
+    ]
 estimateBy R1  = \p n -> let np = fromIntegral n * p in Estimate (np + 1%2) $ IM.singleton (clamp n (ceiling np - 1)) 1
 estimateBy R2  = \p n -> let np = fromIntegral n * p in Estimate (np + 1%2) $
   if p == 0      then IM.singleton 0       1

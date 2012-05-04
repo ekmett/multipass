@@ -16,6 +16,7 @@ import Prelude hiding (id,(.))
 import Data.Pass.Call
 import Data.Pass.Named
 import Data.Pass.Trans
+import Data.Pass.L.By
 
 infixr 5 :-
 
@@ -49,6 +50,10 @@ instance Named k => Named (Thrist k) where
 instance Call k => Call (Thrist k) where
   call Nil = id
   call (f :- xs) = call f . call xs
+
+instance By k => By (Thrist k) where
+  by Nil _ = Nil
+  by (x :- xs) r = by x r :- by xs r
 
 fromThrist :: Call k => (forall d e. k d e -> c) -> Thrist k a b -> [c]
 fromThrist _ Nil       = []
