@@ -12,11 +12,11 @@ import Data.Pass.Robust
 import Data.Pass.Accelerant
 
 class Accelerated k where
-  mean :: (Typeable a, Fractional a, Ord a) => k a a
-  total :: (Typeable a, Fractional a, Ord a) => k a a
-  largest :: (Typeable a, Fractional a, Ord a) => k a a
-  smallest :: (Typeable a, Fractional a, Ord a) => k a a
-  midrange :: (Typeable a, Fractional a, Ord a) => k a a
+  mean :: k Double Double
+  total :: k Double Double
+  largest :: k Double Double
+  smallest :: k Double Double
+  midrange :: k Double Double
 
 instance Accelerated L where
   mean = robust LMean

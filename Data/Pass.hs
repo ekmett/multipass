@@ -1,3 +1,14 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.Pass
+-- Copyright   :  (C) 2012 Edward Kmett,
+-- License     :  BSD-style (see the file LICENSE)
+--
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable (GADTs, Rank2Types)
+--
+----------------------------------------------------------------------------
 module Data.Pass
   (
   -- * Evaluation
@@ -30,7 +41,7 @@ module Data.Pass
   , Estimator(..)
   , By(..)
 
-  -- ** Robust statistics
+  -- ** Robust statistics based on L-estimators
   , Robust(..)
   , median
   , tercile, t1, t2
@@ -47,7 +58,7 @@ module Data.Pass
   , thrist
   , Trans(..)
 
-  -- ** Classes required for user-defined calculations
+  -- ** Classes required for user-defined calculation types
   , Call(..)
   , Named(..)
   , Accelerant(..)

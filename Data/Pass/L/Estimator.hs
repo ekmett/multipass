@@ -6,6 +6,7 @@ module Data.Pass.L.Estimator
   ) where
 
 import Data.Ratio
+import Data.Binary
 import Data.Data
 import qualified Data.IntMap as IM
 import Data.IntMap (IntMap)
@@ -29,6 +30,12 @@ data Estimator
   | R10 -- ^ When rounding h, this yields the order statistic with the least expected square deviation relative to p.
   | HD  -- ^ The Harrell-Davis quantile estimator based on bootstrapped order statistics
   deriving (Eq,Ord,Enum,Bounded,Data,Typeable,Show,Read)
+
+instance Binary Estimator where
+  put e = put (fromIntegral (fromEnum e) :: Word8)
+  get = do
+    i <- get :: Get Word8
+    return $ toEnum (fromIntegral i)
 
 instance Hashable Estimator where
   hashWithSalt n e = n `hashWithSalt` fromEnum e

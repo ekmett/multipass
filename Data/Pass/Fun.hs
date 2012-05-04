@@ -39,6 +39,7 @@ instance Named k => Named (Fun k) where
   showsFun d (Fun f) = showParen (d > 10) $ showString "Fun " . showsFun 10 f
   hashFunWithSalt i (Fun k) = hashFunWithSalt i k
   equalFun (Fun f) (Fun g) = equalFun f g
+  putFun (Fun f) = putFun f
 
 instance Call k => Call (Fun k) where
   call (Fun k) = call k

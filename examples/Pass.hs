@@ -1,23 +1,25 @@
-{-# LANGUAGE GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules #-}
+{-# LANGUAGE GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules, GeneralizedNewtypeDeriving #-}
 
-import Control.Category
 import Control.Applicative
+import Control.Category
 import Control.Newtype
-import Data.Monoid
-import Data.Hashable
+import Control.Monad (liftM)
+import Data.Binary
 import Data.Foldable
-import Data.Typeable
+import Data.Hashable
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
-import Prelude hiding (id,(.))
+import Data.Monoid
+import Data.Typeable
 import Data.Pass
+import Prelude hiding (id,(.))
 
 -- example calculation type
 data Test a b where
   Total    :: Num a => Test a (Sum a)
   Count    :: Test a (Sum Int)
   Square   :: Num a => Test a a
-  Minus    :: (Typeable a, Show a, Num a, Eq a, Hashable a) => a -> Test a a
+  Minus    :: Double -> Test Double Double
   Abs      :: Num a => Test a a
   Smallest :: Num a => Test a (Min a)
   Largest  :: Num a => Test a (Max a)
@@ -35,11 +37,29 @@ instance Ord a => Monoid (Min a) where
   x `mappend` NoMin = x
   Min x `mappend` Min y = Min (min x y)
 
+instance Binary a => Binary (Min a) where
+  put NoMin = put (0 :: Word8)
+  put (Min a) = put (1 :: Word8) >> put a
+  get = do
+    i <- get :: Get Word8
+    case i of
+      0 -> return NoMin
+      1 -> liftM Min get
+
 getMax :: Num a => Max a -> a
 getMax (Max a) = a
 getMax NoMax = 0
 
 data Max a = Max a | NoMax deriving Typeable
+
+instance Binary a => Binary (Max a) where
+  put NoMax = put (0 :: Word8)
+  put (Max a) = put (1 :: Word8) >> put a
+  get = do
+    i <- get :: Get Word8
+    case i of
+      0 -> return NoMax
+      1 -> liftM Max get
 
 instance Ord a => Monoid (Max a) where
   mempty = NoMax
@@ -48,23 +68,24 @@ instance Ord a => Monoid (Max a) where
   Max x `mappend` Max y = Max (max x y)
 
 deriving instance Typeable1 Sum -- :(
+deriving instance Binary a => Binary (Sum a)
 
 count :: (Step t, Num b) => t Test a b
 count = step $ fromIntegral . getSum <$> trans Count
 
-sumSq :: (Step t, Fractional a, Ord a, Typeable a) => t Test a a
+sumSq :: Step t => t Test Double Double
 sumSq = step $ prep Square total
 
 -- E[X^2] - E[X]^2
-var :: (Step t, Fractional a, Ord a, Typeable a) => t Test a a
+var :: Step t => t Test Double Double
 var = step $ sumSq / count - mean ^ 2
 
-stddev :: (Step t, Floating a, Ord a, Typeable a) => t Test a a
+stddev :: Step t => t Test Double Double
 stddev = step $ sqrt var
 
 -- > absDev median -- median absolute deviation
 -- > absDev mean   -- mean absolute deviation
-absdev :: (Show a, Fractional a, Ord a, Typeable a, Hashable a, Eq a) => Pass Test a a -> Calc Test a a
+absdev :: Pass Test Double Double -> Calc Test Double Double
 absdev mu = step mu `Step` \m -> Minus m `prep` Abs `prep` mu
 
 instance Named Test where
@@ -79,7 +100,7 @@ instance Named Test where
   equalFun Total Total         = True
   equalFun Count Count         = True
   equalFun Square Square       = True
-  equalFun (Minus n) (Minus m) = cast m == Just n
+  equalFun (Minus n) (Minus m) = m == n
   equalFun Abs Abs             = True
   equalFun Largest Largest     = True
   equalFun Smallest Smallest   = True
@@ -88,10 +109,18 @@ instance Named Test where
   hashFunWithSalt n Total     = n `hashWithSalt` 0
   hashFunWithSalt n Count     = n `hashWithSalt` 1
   hashFunWithSalt n Square    = n `hashWithSalt` 2
-  hashFunWithSalt n (Minus m) = n `hashWithSalt` 3 `hashWithSalt` m `hashWithSalt` typeOf m
+  hashFunWithSalt n (Minus m) = n `hashWithSalt` 3 `hashWithSalt` m
   hashFunWithSalt n Abs       = n `hashWithSalt` 4
   hashFunWithSalt n Largest   = n `hashWithSalt` 5
   hashFunWithSalt n Smallest  = n `hashWithSalt` 6
+
+  putFun Total     = put (0 :: Word8)
+  putFun Count     = put (1 :: Word8)
+  putFun Square    = put (2 :: Word8)
+  putFun (Minus m) = put (3 :: Word8) >> put m
+  putFun Abs       = put (4 :: Word8)
+  putFun Largest   = put (5 :: Word8)
+  putFun Smallest  = put (6 :: Word8)
 
 instance Call Test where
   call Total a = Sum a

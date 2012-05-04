@@ -9,17 +9,17 @@ import Data.Pass.Robust
 
 -- provide hooks to allow the user to accelerate non-robust L-estimators
 class Accelerant k where
-  meanPass :: (Typeable a, Fractional a, Ord a) => Pass k a a
+  meanPass :: Pass k Double Double
   meanPass = robust LMean
 
-  totalPass :: (Typeable a, Fractional a, Ord a) => Pass k a a
+  totalPass :: Pass k Double Double
   totalPass = robust LTotal
 
-  largestPass :: (Typeable a, Num a, Ord a) => Pass k a a
+  largestPass :: Pass k Double Double
   largestPass = robust $ NthLargest 0
 
-  smallestPass :: (Typeable a, Num a, Ord a) => Pass k a a
+  smallestPass :: Pass k Double Double
   smallestPass = robust $ NthSmallest 0
 
-  midrangePass :: (Typeable a, Num a, Ord a) => Pass k a a
+  midrangePass :: Pass k Double Double
   midrangePass = largestPass - smallestPass

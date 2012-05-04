@@ -4,7 +4,8 @@ module Data.Pass.Trans
 
 import Data.Typeable
 import Data.Monoid
+import Data.Binary
 -- import Data.Pass.Eval
 
 class Trans t where
-  trans :: (Monoid b, Typeable b) => k a b -> t k a b
+  trans :: (Binary b, Monoid b, Typeable b) => k a b -> t k a b

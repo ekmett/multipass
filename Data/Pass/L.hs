@@ -3,6 +3,7 @@
 
 module Data.Pass.L
   ( L(..)
+  , getL
   , callL
   , ordL
   , eqL
@@ -10,6 +11,7 @@ module Data.Pass.L
   , (@#)
   ) where
 
+import Control.Monad (liftM, liftM2)
 import Data.Typeable
 import Data.Hashable
 import Data.Pass.Named
@@ -23,13 +25,7 @@ import Data.Pass.Eval
 import Data.Pass.Eval.Naive
 import Data.Pass.L.By
 import Data.Pass.Util (clamp)
-
-infixl 0 @#
-
--- | @f \@# n@ Return a list of the coefficients that would be used by an L-Estimator for an input of length @n@
-(@#) :: Num a => L a a -> Int -> [a]
-f @# n = [ IM.findWithDefault 0 k fn | k <- [0..n-1] ]
-  where fn = callL f n
+import Data.Binary
 
 -- | An L-Estimator represents a linear combination of order statistics
 data L a b where
@@ -96,6 +92,40 @@ instance Named L where
   equalFun (a :* b) (c :* d)                 = typeOf a == typeOf c && cast a == Just c && equalFun b d
   equalFun _ _ = False
 
+  putFun LTotal           = put (0 :: Word8)
+  putFun LMean            = put (1 :: Word8)
+  putFun LScale           = put (2 :: Word8)
+  putFun (QuantileBy e r) = put (4 :: Word8) >> put e >> put r
+  putFun (Winsorized p f) = put (5 :: Word8) >> put p >> putFun f
+  putFun (Trimmed p f)    = put (6 :: Word8) >> put p >> putFun f
+  putFun (Jackknifed f)   = put (7 :: Word8) >> putFun f
+  putFun (NthLargest n)   = put (8 :: Word8) >> put n
+  putFun (NthSmallest n)  = put (9 :: Word8) >> put n
+  putFun (x :* y)         = put (10 :: Word8) >> put x >> putFun y
+  putFun (x :+ y)         = put (11 :: Word8) >> putFun x >> putFun y
+
+getL :: (Fractional a, Ord a) => Get (L a a)
+getL = do
+  i <- get :: Get Word8
+  case i of
+    0 -> return LTotal
+    1 -> return LMean
+    2 -> return LScale
+    4 -> liftM2 QuantileBy get get
+    5 -> liftM2 Winsorized get getL
+    6 -> liftM2 Trimmed get getL
+    7 -> liftM Jackknifed getL
+    8 -> liftM NthLargest get
+    9 -> liftM NthSmallest get
+    10 -> liftM2 (:*) get getL
+    11 -> liftM2 (:+) getL getL
+    _  -> error "getL: Unknown L-estimator"
+
+{-
+instance (Fractional a, Ord a) => Binary (L a a) where
+  put = putFun
+  get = getL
+-}
 
 instance Naive L where
   naive = (@@)
@@ -108,6 +138,20 @@ instance Hashable (L a b) where
 
 instance Eq (L a b) where
   (==) = equalFun
+
+-- | A common measure of how robust an L estimator is in the presence of outliers.
+breakdown :: (Num b, Eq b) => L a b -> Int
+breakdown f
+  | IM.null m = 50
+  | otherwise = fst (IM.findMin m) `min` (100 - fst (IM.findMax m))
+  where m = IM.filter (/= 0) $ callL f 101
+
+infixl 0 @#
+
+-- | @f \@# n@ Return a list of the coefficients that would be used by an L-Estimator for an input of length @n@
+(@#) :: Num a => L a a -> Int -> [a]
+f @# n = [ IM.findWithDefault 0 k fn | k <- [0..n-1] ]
+  where fn = callL f n
 
 callL :: L a b -> Int -> IntMap b
 callL LTotal n = IM.fromList [ (i,1) | i <- [0..n-1]]
@@ -139,13 +183,6 @@ callL (NthLargest m) n  = IM.singleton (clamp n (n - m - 1)) 1
 callL (NthSmallest m) n = IM.singleton (clamp n m) 1
 callL (x :+ y) n = IM.unionWith (+) (callL x n) (callL y n)
 callL (s :* y) n = fmap (r *) (callL y n) where r = fromRational s
-
--- | A common measure of how robust an L estimator is in the presence of outliers.
-breakdown :: (Num b, Eq b) => L a b -> Int
-breakdown f
-  | IM.null m = 50
-  | otherwise = fst (IM.findMin m) `min` (100 - fst (IM.findMax m))
-  where m = IM.filter (/= 0) $ callL f 101
 
 instance Eval L where
   m @@ as = ordL m $ foldrWithKey step 0 $ sort $ eqL m xs where

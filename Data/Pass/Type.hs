@@ -10,26 +10,28 @@ module Data.Pass.Type
 
 import Control.Category
 import Control.Applicative hiding (empty)
+import Data.Binary
 import Data.Monoid
 import Data.Foldable
 import Data.Typeable
-import Prelude hiding (id,(.),foldr,lookup)
-import Data.Pass.Thrist
+import Data.List (sort)
 import Data.Key (foldrWithKey)
 import qualified Data.IntMap as IntMap
+import Prelude hiding (id,(.),foldr,lookup)
+
 import Data.Pass.Call
 import Data.Pass.Eval
-import Data.Pass.Prep
-import Data.List (sort)
 import Data.Pass.Eval.Naive
 import qualified Data.Pass.Env as Env
 import Data.Pass.Env (Env)
+import Data.Pass.Prep
+import Data.Pass.Thrist
 import Data.Pass.Trans
 import Data.Pass.L
 import Data.Pass.L.By
 
 data Pass k a b where
-  Pass :: (Monoid m, Typeable m) => (m -> o) -> Thrist k i m -> Pass k i o
+  Pass :: (Typeable m, Binary m, Monoid m) => (m -> o) -> Thrist k i m -> Pass k i o
   L    :: (n -> o) -> L n n -> Thrist k i n -> Pass k i o
   Ap   :: (b -> c) -> Pass k i (a -> b) -> Pass k i a -> Pass k i c
   Pure :: a -> Pass k i a

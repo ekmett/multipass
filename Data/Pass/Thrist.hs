@@ -12,6 +12,7 @@ module Data.Pass.Thrist
 import Control.Category
 import Data.Hashable
 import Data.Typeable
+import Data.Binary
 import Prelude hiding (id,(.))
 import Data.Pass.Call
 import Data.Pass.Named
@@ -41,11 +42,19 @@ thrist k = k :- Nil
 instance Named k => Named (Thrist k) where
   showsFun d (x :- xs) = showParen (d > 5) $ showsFun 6 x . showString " :- " . showsFun 5 xs
   showsFun _ Nil = showString "Nil"
+
   hashFunWithSalt k Nil = k
   hashFunWithSalt k (f :- xs) = k `hashFunWithSalt` f `hashWithSalt` xs
+
   equalFun Nil Nil = True
   equalFun (a :- as) (b :- bs) = equalFun a b && equalFun as bs
   equalFun _ _ = False
+
+  putFun Nil = put (0 :: Word8)
+  putFun (x :- xs) = do
+    put (1 :: Word8)
+    putFun x
+    putFun xs
 
 instance Call k => Call (Thrist k) where
   call Nil = id
