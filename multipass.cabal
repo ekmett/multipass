@@ -21,12 +21,12 @@ source-repository head
 
 library
   other-extensions:
-    CPP,
-    GADTs,
-    Rank2Types,
+    CPP
+    GADTs
+    Rank2Types
+    BangPatterns
     PatternGuards
-    ScopedTypeVariables,
-    ExtendedDefaultRules
+    ScopedTypeVariables
 
   build-depends:
     ghc-prim,

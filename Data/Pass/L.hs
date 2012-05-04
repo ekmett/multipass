@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, DeriveDataTypeable, PatternGuards, Rank2Types #-}
+{-# LANGUAGE GADTs, DeriveDataTypeable, PatternGuards, Rank2Types, BangPatterns #-}
 
 module Data.Pass.L
   ( L(..)
@@ -6,6 +6,7 @@ module Data.Pass.L
   , callL
   , ordL
   , eqL
+  , selectL
   , breakdown
   , (@#)
   ) where
@@ -189,6 +190,28 @@ instance Eval L where
     n = length xs
     coefs = callL m n
     step = ordL m $ \g v x -> IM.findWithDefault 0 g coefs * v + x
+
+selectL :: L a b -> [a] -> b
+selectL m xs = ordL m $ callL m (length xs) `selectM` eqL m xs
+
+-- perform a hedged quickselect using the keys for the sparse 
+selectM :: (Num a, Ord a) => IntMap a -> [a] -> a
+selectM = go 0 where
+  go !_ !_ [] = 0
+  go !b !m (x:xs) = i + j + k
+    where (lo,n, hi) = partitionAndCount (<x) xs
+          (lm,mm,hm) = IM.splitLookup (b+n) m
+          i = if IM.null lm then 0 else go b lm lo
+          j = maybe 0 (x*) mm
+          k = if IM.null hm then 0 else go (b+n+1) hm hi
+
+-- NB: unstable, reverses the sub-lists each time
+partitionAndCount :: (a -> Bool) -> [a] -> ([a],Int,[a])
+partitionAndCount f = go [] 0 [] where
+  go !ts !n !fs [] = (ts,n,fs)
+  go !ts !n !fs (x:xs)
+   | f x = go (x:ts) (n + 1) fs xs
+   | otherwise = go ts n (x:fs) xs
 
 eqL :: L a b -> p a -> p b
 eqL LTotal a = a

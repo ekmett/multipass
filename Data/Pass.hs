@@ -26,7 +26,6 @@ module Data.Pass
   , Calc(..)
   , Calculation(..)
   , passes
-  , (@@@)
 
   -- * Input conditioning
   , Prep(..)

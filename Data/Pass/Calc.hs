@@ -2,13 +2,11 @@
 module Data.Pass.Calc
   ( Calc(..)
   , passes
-  , (@@@)
   ) where
 
 import Control.Category
 import Control.Applicative
 import Prelude hiding (id,(.))
-import Data.Foldable
 import Data.Pass.Call
 import Data.Pass.Eval
 import Data.Pass.Eval.Naive
@@ -91,7 +89,3 @@ instance Call k => Eval (Calc k) where
   Stop b   @@ _  = b
   Step i k @@ xs = k (i @@ xs) @@ xs
 
-infixl 0 @@@
-
-(@@@) :: (Call k, Foldable f) => Calc k a b -> f a -> b
-(@@@) = naive
