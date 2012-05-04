@@ -31,7 +31,7 @@ module Data.Pass
   -- * Input conditioning
   , Prep(..)
 
-  -- * L-Estimators (calculations based on order statistics)
+  -- * L-Estimators
   , L(..)
   , (@#)
   , breakdown
