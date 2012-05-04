@@ -16,23 +16,35 @@ import Data.Pass
 data Test a b where
   Total    :: Num a => Test a (Sum a)
   Count    :: Test a (Sum Int)
-  Square   :: Test Double Double
-  Minus    :: Double -> Test Double Double
-  Abs      :: Test Double Double
-  Smallest :: Test Double Min
-  Largest  :: Test Double Max
+  Square   :: Num a => Test a a
+  Minus    :: (Typeable a, Show a, Num a, Eq a, Hashable a) => a -> Test a a
+  Abs      :: Num a => Test a a
+  Smallest :: Num a => Test a (Min a)
+  Largest  :: Num a => Test a (Max a)
   deriving Typeable
 
-newtype Min = Min { getMin :: Double } deriving Typeable
+data Min a = Min a | NoMin deriving Typeable
 
-instance Monoid Min where
-  mempty = Min (1/0)
+getMin :: Num a => Min a -> a
+getMin (Min a) = a
+getMin NoMin = 0
+
+instance Ord a => Monoid (Min a) where
+  mempty = NoMin
+  NoMin `mappend` y = y
+  x `mappend` NoMin = x
   Min x `mappend` Min y = Min (min x y)
 
-newtype Max = Max { getMax :: Double } deriving Typeable
+getMax :: Num a => Max a -> a
+getMax (Max a) = a
+getMax NoMax = 0
 
-instance Monoid Max where
-  mempty = Max (-1/0)
+data Max a = Max a | NoMax deriving Typeable
+
+instance Ord a => Monoid (Max a) where
+  mempty = NoMax
+  NoMax `mappend` y = y
+  x `mappend` NoMax = x
   Max x `mappend` Max y = Max (max x y)
 
 deriving instance Typeable1 Sum -- :(
@@ -40,19 +52,19 @@ deriving instance Typeable1 Sum -- :(
 count :: (Step t, Num b) => t Test a b
 count = step $ fromIntegral . getSum <$> trans Count
 
-sumSq :: Step t => t Test Double Double
+sumSq :: (Step t, Fractional a, Ord a, Typeable a) => t Test a a
 sumSq = step $ prep Square total
 
 -- E[X^2] - E[X]^2
-var :: Step t => t Test Double Double
+var :: (Step t, Fractional a, Ord a, Typeable a) => t Test a a
 var = step $ sumSq / count - mean ^ 2
 
-stddev :: Step t => t Test Double Double
+stddev :: (Step t, Floating a, Ord a, Typeable a) => t Test a a
 stddev = step $ sqrt var
 
 -- > absDev median -- median absolute deviation
 -- > absDev mean   -- mean absolute deviation
-absdev :: Pass Test Double Double -> Calc Test Double Double
+absdev :: (Show a, Fractional a, Ord a, Typeable a, Hashable a, Eq a) => Pass Test a a -> Calc Test a a
 absdev mu = step mu `Step` \m -> Minus m `prep` Abs `prep` mu
 
 instance Named Test where
@@ -76,7 +88,7 @@ instance Named Test where
   hashFunWithSalt n Total     = n `hashWithSalt` 0
   hashFunWithSalt n Count     = n `hashWithSalt` 1
   hashFunWithSalt n Square    = n `hashWithSalt` 2
-  hashFunWithSalt n (Minus m) = n `hashWithSalt` 3 `hashWithSalt` m
+  hashFunWithSalt n (Minus m) = n `hashWithSalt` 3 `hashWithSalt` m `hashWithSalt` typeOf m
   hashFunWithSalt n Abs       = n `hashWithSalt` 4
   hashFunWithSalt n Largest   = n `hashWithSalt` 5
   hashFunWithSalt n Smallest  = n `hashWithSalt` 6
@@ -91,8 +103,8 @@ instance Call Test where
   call Smallest a = Min a
 
 instance Accelerant Test where
-  totalPass = getSum <$> trans Total
   meanPass  = total / count
+  totalPass = getSum <$> trans Total
   largestPass = getMax <$> trans Largest
   smallestPass = getMin <$> trans Smallest
 

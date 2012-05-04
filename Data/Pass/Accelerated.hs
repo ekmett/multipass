@@ -2,6 +2,7 @@ module Data.Pass.Accelerated
   ( Accelerated(..)
   ) where
 
+import Data.Typeable
 import Data.Pass.Type
 import Data.Pass.Calc
 import Data.Pass.L
@@ -11,11 +12,11 @@ import Data.Pass.Robust
 import Data.Pass.Accelerant
 
 class Accelerated k where
-  mean :: k Double Double
-  total :: k Double Double
-  largest :: k Double Double
-  smallest :: k Double Double
-  midrange :: k Double Double
+  mean :: (Typeable a, Fractional a, Ord a) => k a a
+  total :: (Typeable a, Fractional a, Ord a) => k a a
+  largest :: (Typeable a, Fractional a, Ord a) => k a a
+  smallest :: (Typeable a, Fractional a, Ord a) => k a a
+  midrange :: (Typeable a, Fractional a, Ord a) => k a a
 
 instance Accelerated L where
   mean = robust LMean
