@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, DeriveDataTypeable, ExtendedDefaultRules, PatternGuards #-}
+{-# LANGUAGE GADTs, DeriveDataTypeable, ExtendedDefaultRules, PatternGuards, Rank2Types #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 module Data.Pass.L
@@ -12,17 +12,25 @@ import Data.Typeable
 import Data.Hashable
 import Data.Pass.Named
 import Data.IntMap (IntMap)
+import Data.Key (foldrWithKey)
+import Data.List (sort)
 import qualified Data.IntMap as IM
+import qualified Data.Foldable as Foldable
 import Data.Pass.L.Estimator
+import Data.Pass.Eval
+import Data.Pass.Eval.Naive
 import Data.Pass.L.By
 import Data.Pass.Util (clamp)
 
 infixl 0 @#
 
+-- | @f \@# n@ Return a list of the coefficients that would be used by an L-Estimator for an input of length @n@
 (@#) :: Num a => L a a -> Int -> [a]
 f @# n = [ IM.findWithDefault 0 k fn | k <- [0..n-1] ]
   where fn = callL f n
 
+
+-- | An L-Estimator represents a linear combination of order statistics
 data L a b where
   LTotal       :: L Double Double
   LMean        :: L Double Double
@@ -87,6 +95,10 @@ instance Named L where
   equalFun (a :* b) (c :* d)                 = a == c && equalFun b d
   equalFun _ _ = False
 
+
+instance Naive L where
+  naive = (@@)
+
 instance Show (L a b) where
   showsPrec = showsFun
 
@@ -96,7 +108,7 @@ instance Hashable (L a b) where
 instance Eq (L a b) where
   (==) = equalFun
 
-callL :: L a a -> Int -> IntMap a
+callL :: L a b -> Int -> IntMap b
 callL LTotal n = IM.fromList [ (i,1) | i <- [0..n-1]]
 callL LMean n = IM.fromList [ (i, oon) | i <- [0..n-1]]
   where oon = recip (fromIntegral n)
@@ -133,3 +145,34 @@ breakdown f
   | IM.null m = 50
   | otherwise = fst (IM.findMin m) `min` (100 - fst (IM.findMax m))
   where m = IM.filter (/= 0) $ callL f 101
+
+instance Eval L where
+  m @@ as = ordL m $ foldrWithKey step 0 $ sort $ eqL m xs where
+    xs = Foldable.toList as
+    n = length xs
+    coefs = callL m n
+    step = ordL m $ \g v x -> IM.findWithDefault 0 g coefs * v + x
+
+eqL :: L a b -> p a -> p b
+eqL LTotal a = a
+eqL LMean a = a
+eqL LScale a = a
+eqL (NthLargest _) a = a
+eqL (NthSmallest _) a = a
+eqL (QuantileBy _ _) a = a
+eqL (Winsorized _ x) a = eqL x a
+eqL (Jackknifed x) a = eqL x a
+eqL (x :+ _) a = eqL x a
+eqL (_ :* x) a = eqL x a
+
+ordL :: L a b -> ((Ord b, Num b) => r) -> r
+ordL LTotal a = a
+ordL LMean a = a
+ordL LScale a = a
+ordL (NthLargest _) a = a
+ordL (NthSmallest _) a = a
+ordL (QuantileBy _ _) a = a
+ordL (Winsorized _ x) a = ordL x a
+ordL (Jackknifed x) a = ordL x a
+ordL (x :+ _) a = ordL x a
+ordL (_ :* x) a = ordL x a

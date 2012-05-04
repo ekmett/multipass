@@ -13,6 +13,8 @@ import Data.Pass.Named
 import Data.Pass.Call
 import Data.Pass.Trans
 import Data.Pass.L.By
+import Data.Pass.Eval
+import Data.Pass.Eval.Naive
 
 newtype Fun k a b = Fun { unFun :: k a b }
 
@@ -46,6 +48,12 @@ instance Named k => Eq (Fun k a b) where
 
 instance Named k => Hashable (Fun k a b) where
   hashWithSalt = hashFunWithSalt
+
+instance Naive k => Naive (Fun k) where
+  naive (Fun k) xs = naive k xs
+
+instance Eval k => Eval (Fun k) where
+  Fun k @@ xs = k @@ xs
 
 instance By k => By (Fun k) where
   by (Fun k) r = Fun (by k r)
