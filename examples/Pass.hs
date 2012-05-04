@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs, DeriveDataTypeable, StandaloneDeriving, ExtendedDefaultRules #-}
-module Pass where
 
 import Control.Category
 import Control.Applicative
@@ -80,7 +79,7 @@ instance Named Test where
   hashFunWithSalt n (Minus m) = n `hashWithSalt` 3 `hashWithSalt` m
   hashFunWithSalt n Abs       = n `hashWithSalt` 4
   hashFunWithSalt n Largest   = n `hashWithSalt` 5
-  hashFunWithSalt n Smallest  = n `hashWithSalt` 5
+  hashFunWithSalt n Smallest  = n `hashWithSalt` 6
 
 instance Call Test where
   call Total a = Sum a

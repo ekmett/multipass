@@ -27,7 +27,6 @@ data L a b where
   LTotal       :: L Double Double
   LMean        :: L Double Double
   LScale       :: L Double Double
---  Median       :: L Double Double
   NthLargest   :: Int -> L Double Double
   NthSmallest  :: Int -> L Double Double
   QuantileBy   :: Estimator -> Rational -> L Double Double
@@ -54,7 +53,6 @@ instance Named L where
   showsFun _ LTotal           = showString "LTotal"
   showsFun _ LMean            = showString "LMean"
   showsFun _ LScale           = showString "LScale"
---  showsFun _ Median           = showString "Median"
   showsFun d (QuantileBy e q) = showParen (d > 10) $ showString "QuantileBy " . showsPrec 10 e . showChar ' ' . showsPrec 10 q
   showsFun d (Winsorized p f) = showParen (d > 10) $ showString "Winsorized " . showsPrec 10 p . showChar ' ' . showsFun 10 f
   showsFun d (Trimmed p f)    = showParen (d > 10) $ showString "Trimmed "    . showsPrec 10 p . showChar ' ' . showsFun 10 f
@@ -67,7 +65,6 @@ instance Named L where
   hashFunWithSalt n LTotal           = n `hashWithSalt` 0
   hashFunWithSalt n LMean            = n `hashWithSalt` 1
   hashFunWithSalt n LScale           = n `hashWithSalt` 2
---  hashFunWithSalt n Median           = n `hashWithSalt` 3
   hashFunWithSalt n (QuantileBy e q) = n `hashWithSalt` 4  `hashWithSalt` e `hashWithSalt` q
   hashFunWithSalt n (Winsorized p f) = n `hashWithSalt` 5  `hashWithSalt` p `hashFunWithSalt` f
   hashFunWithSalt n (Trimmed p f)    = n `hashWithSalt` 6  `hashWithSalt` p `hashFunWithSalt` f
@@ -80,7 +77,6 @@ instance Named L where
   equalFun LTotal LTotal = True
   equalFun LMean  LMean  = True
   equalFun LScale LScale = True
---  equalFun Median Median = True
   equalFun (QuantileBy e p) (QuantileBy f q) = e == f && p == q
   equalFun (Winsorized p f) (Winsorized q g) = p == q && equalFun f g
   equalFun (Trimmed p f) (Trimmed q g)       = p == q && equalFun f g
@@ -107,11 +103,6 @@ callL LMean n = IM.fromList [ (i, oon) | i <- [0..n-1]]
 callL LScale n = IM.fromList [ (i - 1, scale * (2 * fromIntegral i - 1 - r)) | i <- [1..n]]
   where r = fromIntegral n
         scale = 1 / (r *(r-1))
-{-
-callL Median n = case quotRem n 2 of
-  (k, 0) -> IM.fromDistinctAscList [(k-1,0.5),(k,0.5)]
-  (k, _) -> IM.singleton k 1
--}
 callL (QuantileBy f p) n = case estimateBy f p n of
   Estimate h qp -> case properFraction h of
     (w, 0) -> IM.singleton (clamp n (w - 1)) 1
@@ -136,6 +127,7 @@ callL (NthSmallest m) n = IM.singleton (clamp n m) 1
 callL (x :+ y) n = IM.unionWith (+) (callL x n) (callL y n)
 callL (s :* y) n = fmap (s*) (callL y n)
 
+-- | A common measure of how robust an L estimator is in the presence of outliers.
 breakdown :: (Num a, Eq a) => L a a -> Int
 breakdown f
   | IM.null m = 50
