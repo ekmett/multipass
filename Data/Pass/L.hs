@@ -6,7 +6,6 @@ module Data.Pass.L
   , callL
   , ordL
   , eqL
-  , selectL
   , breakdown
   , (@#)
   ) where
@@ -16,6 +15,7 @@ import Data.Typeable
 import Data.Hashable
 import Data.Pass.Named
 import Data.IntMap (IntMap)
+import Data.Foldable (toList)
 import Data.Key (foldrWithKey)
 import Data.List (sort)
 import qualified Data.IntMap as IM
@@ -121,15 +121,6 @@ getL = do
     11 -> liftM2 (:+) getL getL
     _  -> error "getL: Unknown L-estimator"
 
-{-
-instance (Fractional a, Ord a) => Binary (L a a) where
-  put = putFun
-  get = getL
--}
-
-instance Naive L where
-  naive = (@@)
-
 instance Show (L a b) where
   showsPrec = showsFun
 
@@ -184,17 +175,17 @@ callL (NthSmallest m) n = IM.singleton (clamp n m) 1
 callL (x :+ y) n = IM.unionWith (+) (callL x n) (callL y n)
 callL (s :* y) n = fmap (r *) (callL y n) where r = fromRational s
 
-instance Eval L where
-  m @@ as = ordL m $ foldrWithKey step 0 $ sort $ eqL m xs where
+instance Naive L where
+  naive m as = ordL m $ foldrWithKey step 0 $ sort $ eqL m xs where
     xs = Foldable.toList as
     n = length xs
     coefs = callL m n
     step = ordL m $ \g v x -> IM.findWithDefault 0 g coefs * v + x
 
-selectL :: L a b -> [a] -> b
-selectL m xs = ordL m $ callL m (length xs) `selectM` eqL m xs
+instance Eval L where
+  m @@ as = ordL m $ callL m (length xs) `selectM` eqL m xs where xs = toList as
 
--- perform a hedged quickselect using the keys for the sparse 
+-- perform a hedged quickselect using the keys for the sparse
 selectM :: (Num a, Ord a) => IntMap a -> [a] -> a
 selectM = go 0 where
   go !_ !_ [] = 0

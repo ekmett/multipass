@@ -5,7 +5,7 @@ module Data.Pass.Type
   ) where
 
 #ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 0
+#define MIN_VERSION_base(x,y,z) 1
 #endif
 
 import Control.Category
@@ -124,16 +124,17 @@ env :: Call k => Pass k a b -> Env k a
 env = envWith Env.empty
 
 envWith :: Call k => Env k a -> Pass k a c -> Env k a
-envWith acc Pure{}     = acc
 envWith acc (Ap _ l r) = envWith (envWith acc l) r
 envWith acc (Pass _ t) = Env.insert t mempty acc
+envWith acc _ = acc
 
 instance Call k => Eval (Pass k) where
-  f @@ xs = foldr Env.cons (env f) xs `evalWith` f
+  f @@ as = evalWith (foldr Env.cons (env f) xs) f xs where xs = toList as
 
-evalWith :: Call k => Env k a -> Pass k a c -> c
-evalWith _ (Pure a) = a
-evalWith g (Ap k l r) = k $ evalWith g l $ evalWith g r
-evalWith g (Pass k t) = k $ case Env.lookup t g of
+evalWith :: Call k => Env k a -> Pass k a c -> [a] -> c
+evalWith _ (Pure a) _ = a
+evalWith g (Ap k l r) xs = k $ evalWith g l xs $ evalWith g r xs
+evalWith g (Pass k t) _ = k $ case Env.lookup t g of
   Nothing -> error "evalWith: missing thrist"
   Just v  -> v
+evalWith _ (L k m i) xs = k (m @@ map (call i) xs)

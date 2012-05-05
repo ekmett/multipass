@@ -62,6 +62,7 @@ library
     Data.Pass.Thrist
     Data.Pass.Trans
     Data.Pass.Type
+    Data.Pass.Monoid.Ord
 
   other-modules:
     Data.Pass.Util

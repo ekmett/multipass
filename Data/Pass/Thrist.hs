@@ -6,7 +6,7 @@ module Data.Pass.Thrist
   ) where
 
 #ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 0
+#define MIN_VERSION_base(x,y,z) 1
 #endif
 
 import Control.Category
@@ -38,6 +38,7 @@ instance Category (Thrist k) where
 
 thrist :: k a b -> Thrist k a b
 thrist k = k :- Nil
+{-# INLINE thrist #-}
 
 instance Named k => Named (Thrist k) where
   showsFun d (x :- xs) = showParen (d > 5) $ showsFun 6 x . showString " :- " . showsFun 5 xs
@@ -64,9 +65,12 @@ instance By k => By (Thrist k) where
   by Nil _ = Nil
   by (x :- xs) r = by x r :- by xs r
 
-fromThrist :: Call k => (forall d e. k d e -> c) -> Thrist k a b -> [c]
-fromThrist _ Nil       = []
-fromThrist f (x :- xs) = f x : fromThrist f xs
+fromThrist :: forall k a b c. Call k => (forall d e. k d e -> c) -> Thrist k a b -> [c]
+fromThrist f = go where
+  go :: Thrist k f g -> [c]
+  go Nil = []
+  go (x :- xs) = f x : go xs
+{-# INLINE fromThrist #-}
 
 instance Named k => Eq (Thrist k a b) where
   (==) = equalFun

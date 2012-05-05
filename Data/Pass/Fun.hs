@@ -4,7 +4,7 @@ module Data.Pass.Fun
   ) where
 
 #ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 0
+#define MIN_VERSION_base(x,y,z) 1
 #endif
 
 import Data.Hashable
