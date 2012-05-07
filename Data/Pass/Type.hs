@@ -108,14 +108,11 @@ instance Floating b => Floating (Pass k a b) where
   atanh = fmap atanh
 
 instance Call k => Naive (Pass k) where
-  naive f as = naivePass f xs (length xs) where xs = toList as
-
-naivePass :: Call k => Pass k a b -> [a] -> Int -> b
-naivePass (Pure b)     _  _ = b
-naivePass (Ap k mf mx) xs n = k $ naivePass mf xs n $ naivePass mx xs n
-naivePass (Pass k t)   xs _ = k $ foldMap (call t) xs
-naivePass (L k m i)    xs n = k $ ordL m $ foldrWithKey step 0 stats
-  where
+  naive (Pure b)     _ _  = b
+  naive (Ap k mf mx) n xs = k $ naive mf n xs $ naive mx n xs
+  naive (Pass k t)   _ xs = k $ foldMap (call t) xs
+  naive (L k m i)    n xs = k $ ordL m $ foldrWithKey step 0 stats
+    where
       step g v x = ordL m $ IntMap.findWithDefault 0 g coefs * v + x
       stats = ordL m $ sort $ call i <$> xs
       coefs = callL m n
@@ -129,12 +126,12 @@ envWith acc (Pass _ t) = Env.insert t mempty acc
 envWith acc _ = acc
 
 instance Call k => Eval (Pass k) where
-  f @@ as = evalWith (foldr Env.cons (env f) xs) f xs where xs = toList as
+  eval f n xs = evalWith (foldr Env.cons (env f) xs) f n xs
 
-evalWith :: Call k => Env k a -> Pass k a c -> [a] -> c
-evalWith _ (Pure a) _ = a
-evalWith g (Ap k l r) xs = k $ evalWith g l xs $ evalWith g r xs
-evalWith g (Pass k t) _ = k $ case Env.lookup t g of
+evalWith :: Call k => Env k a -> Pass k a c -> Int -> [a] -> c
+evalWith _ (Pure a)   _ _  = a
+evalWith g (Ap k l r) n xs = k $ evalWith g l n xs $ evalWith g r n xs
+evalWith _ (L k m i)  n xs = k $ eval m n $ map (call i) xs
+evalWith g (Pass k t) _ _  = k $ case Env.lookup t g of
   Nothing -> error "evalWith: missing thrist"
   Just v  -> v
-evalWith _ (L k m i) xs = k (m @@ map (call i) xs)

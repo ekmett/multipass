@@ -12,8 +12,8 @@
 module Data.Pass
   (
   -- * Evaluation
-    Eval(..)
-  , Naive(..)
+    Eval(..), (@@)
+  , Naive(..), (@@@)
 
   -- * Single pass calculations
   , Pass(..)

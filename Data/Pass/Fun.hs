@@ -51,10 +51,10 @@ instance Named k => Hashable (Fun k a b) where
   hashWithSalt = hashFunWithSalt
 
 instance Naive k => Naive (Fun k) where
-  naive (Fun k) xs = naive k xs
+  naive (Fun k) = naive k
 
 instance Eval k => Eval (Fun k) where
-  Fun k @@ xs = k @@ xs
+  eval (Fun k) = eval k
 
 instance By k => By (Fun k) where
   by (Fun k) r = Fun (by k r)
