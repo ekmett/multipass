@@ -25,7 +25,6 @@ module Data.Pass
   -- * Multipass calculations
   , Calc(..)
   , Calculation(..)
-  , passes
 
   -- * Input conditioning
   , Prep(..)

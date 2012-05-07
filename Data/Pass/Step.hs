@@ -13,4 +13,4 @@ instance Step Pass where
   step = id
 
 instance Step Calc where
-  step k = Step (Stop ()) (const k)
+  step k = k :& Stop

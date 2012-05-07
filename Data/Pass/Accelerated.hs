@@ -39,11 +39,11 @@ instance Accelerated k => Accelerated (Thrist k) where
   midrange = midrange :- Nil
 
 instance Accelerant k => Accelerated (Calc k) where
-  mean  = Stop () `Step` const meanPass
-  total = Stop () `Step` const totalPass
-  largest = Stop () `Step` const largestPass
-  smallest = Stop () `Step` const smallestPass
-  midrange = Stop () `Step` const midrangePass
+  mean  = meanPass :& Stop
+  total = totalPass :& Stop
+  largest = largestPass :& Stop
+  smallest = smallestPass :& Stop
+  midrange = midrangePass :& Stop
 
 instance Accelerant k => Accelerated (Pass k) where
   mean = meanPass

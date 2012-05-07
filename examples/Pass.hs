@@ -45,7 +45,7 @@ stddev = step $ sqrt var
 -- > absDev median -- median absolute deviation
 -- > absDev mean   -- mean absolute deviation
 absdev :: Pass Test Double Double -> Calc Test Double Double
-absdev mu = step mu `Step` \m -> Minus m `prep` Abs `prep` mu
+absdev mu = mu :& \m -> Minus m `prep` Abs `prep` step mu
 
 -- median absolute deviation
 mad :: Calc Test Double Double

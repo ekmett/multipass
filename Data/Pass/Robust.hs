@@ -108,7 +108,7 @@ instance Robust (Pass k) where
   iqr      = q3 - q1
 
 instance Robust (Calc k) where
-  robust l = Stop () `Step` const (robust l)
-  midhinge = Stop () `Step` const midhinge
-  trimean  = Stop () `Step` const trimean
-  iqr      = Stop () `Step` const iqr
+  robust l = robust l :& Stop
+  midhinge = midhinge :& Stop
+  trimean  = trimean :& Stop
+  iqr      = iqr :& Stop

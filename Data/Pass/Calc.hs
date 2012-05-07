@@ -1,7 +1,6 @@
 {-# LANGUAGE GADTs #-}
 module Data.Pass.Calc
   ( Calc(..)
-  , passes
   ) where
 
 import Control.Category
@@ -17,40 +16,36 @@ import Data.Pass.Trans
 
 data Calc k a b where
   Stop :: b -> Calc k a b
-  Step :: Calc k a b -> (b -> Pass k a c) -> Calc k a c
-  -- Step :: Calc k a (Thrist k a b) -> Pass k b c -> Calc k a c -- this needs more out of Thrist 
-  -- Step :: (b -> Thrist k a c) -> Calc k a b -> (b -> Pass k c d) -> Calc k a d
-  -- Rank :: Ord c => Calc k c d -> k a b -> (a -> b -> c) -> Calc k a d
+  (:&) :: Pass k a b -> (b -> Calc k a c) -> Calc k a c
 
-infixl 1 `Step`
+infixl 1 :&
 
 instance By (Calc k) where
-  by (Step x f) r = by x r `Step` \b -> by (f b) r
-  -- by (Rank x f k) r = Rank (by x r) f k
+  by (x :& f) r = by x r :& \b -> f b `by` r
   by x _ = x
-
--- | Return the number of passes over the data required to compute the result
-passes :: Calc k a b -> Int
-passes Stop{}     = 0
-passes (Step x _) = passes x + 1
--- passes (Rank x _ _) = passes x + 1
 
 instance Functor (Calc k a) where
   fmap f (Stop b) = Stop (f b)
-  fmap f (Step fb kba) = Step fb (fmap f . kba)
---  fmap f (Rank k g z) = Rank k g (fmap f z)
+  fmap f (fb :& kba) = fb :& fmap f . kba
 
 instance Applicative (Calc k a) where
   pure = Stop
   Stop f      <*> Stop a      = Stop (f a)
---  Rank kf f j <*> Rank ka g k = Rank 
-  Stop f      <*> Step fb kba = fb `Step` fmap f . kba
-  Step fg kgf <*> Stop a      = fg `Step` fmap ($a) . kgf
-  Step fg kgf <*> Step fb kba = liftA2 (,) fg fb `Step` \(g, b) -> kgf g <*> kba b
+  Stop f      <*> (fb :& kba) = fb :& fmap f . kba
+  (fg :& kgf) <*> Stop a      = fg :& fmap ($a) . kgf
+  (fg :& kgf) <*> (fb :& kba) = liftA2 (,) fg fb :& \(g,b) -> kgf g <*> kba b
+  _ *> b = b
+  a <* _ = a
+
+instance Monad (Calc k a) where
+  return = Stop
+  Stop a      >>= f = f a
+  (fb :& kba) >>= f = fb :& (>>= f) . kba
+  (>>) = (*>)
 
 instance Prep Calc where
   prep _ (Stop b) = Stop b
-  prep t (Step c k) = prep t c `Step` prep t . k
+  prep t (c :& k) = prep t c :& prep t . k
 
 instance Num b => Num (Calc k a b) where
   (+) = liftA2 (+)
@@ -86,13 +81,12 @@ instance Floating b => Floating (Calc k a b) where
   atanh = fmap atanh
 
 instance Trans Calc where
-  trans t = Stop () `Step` \_ -> trans t
+  trans t = trans t :& Stop
 
 instance Call k => Naive (Calc k) where
   naive (Stop b) _    = b
-  naive (Step i k) as = naive (k (naive i as)) as
+  naive (i :& k) as = naive (k (naive i as)) as
 
 instance Call k => Eval (Calc k) where
   Stop b   @@ _  = b
-  Step i k @@ xs = k (i @@ xs) @@ xs
-
+  (i :& k) @@ xs = k (i @@ xs) @@ xs
