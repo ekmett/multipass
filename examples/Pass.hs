@@ -47,6 +47,10 @@ stddev = step $ sqrt var
 absdev :: Pass Test Double Double -> Calc Test Double Double
 absdev mu = step mu `Step` \m -> Minus m `prep` Abs `prep` mu
 
+-- median absolute deviation
+mad :: Calc Test Double Double
+mad = absdev median
+
 instance Named Test where
   showsFun _ Total     = showString "Total"
   showsFun _ Count     = showString "Count"

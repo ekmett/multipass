@@ -34,7 +34,8 @@ module Data.Pass
   , L(..)
   , (@#)
   , breakdown
-  , iqm
+  , iqm -- interquantile mean
+  , idm -- interdecile mean
 
   -- ** Quantile estimators
   , Estimator(..)

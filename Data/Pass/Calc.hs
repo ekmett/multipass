@@ -18,7 +18,7 @@ import Data.Pass.Trans
 data Calc k a b where
   Stop :: b -> Calc k a b
   Step :: Calc k a b -> (b -> Pass k a c) -> Calc k a c
-  -- Step :: Calc k a (Thrist k a b) -> Pass k b c -> Calc k a c
+  -- Step :: Calc k a (Thrist k a b) -> Pass k b c -> Calc k a c -- this needs more out of Thrist 
   -- Step :: (b -> Thrist k a c) -> Calc k a b -> (b -> Pass k c d) -> Calc k a d
   -- Rank :: Ord c => Calc k c d -> k a b -> (a -> b -> c) -> Calc k a d
 

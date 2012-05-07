@@ -2,6 +2,7 @@ module Data.Pass.Robust
   ( Robust(..)
   , median
   , iqm
+  , idm
   , tercile, t1, t2
   , quartile, q1, q2, q3
   , quintile, qu1, qu2, qu3, qu4
@@ -46,9 +47,15 @@ class Robust l where
   iqr :: (Fractional a, Ord a) => l a a
   iqr = robust $ ((-1) :* q1) :+ q3
 
+  idr :: (Fractional a, Ord a) => l a a
+  idr = robust $ ((-1) :* quantile 0.1) :+ quantile 0.9
+
 -- | interquartile mean
 iqm :: (Robust l, Fractional a, Ord a) => l a a
 iqm = trimmed 0.25 LMean
+
+idm :: (Robust l, Fractional a, Ord a) => l a a
+idm = trimmed 0.1 LMean
 
 median :: (Robust l, Fractional a, Ord a) => l a a
 median = quantile 0.5
