@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds, TypeFamilies #-}
+{-# LANGUAGE TypeFamilies #-}
 module Data.Pass.Named
   ( Named(..)
   ) where
