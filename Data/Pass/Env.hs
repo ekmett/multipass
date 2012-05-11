@@ -10,7 +10,7 @@ import Control.Applicative hiding (empty)
 import Data.Binary
 import qualified Data.HashMap.Strict as HashMap
 import Data.HashMap.Strict (HashMap)
-import Data.Monoid (Monoid(..), (<>))
+import Data.Monoid (Monoid(..))
 import Data.Typeable
 import GHC.Prim (Any)
 import Prelude hiding (lookup)
@@ -50,4 +50,4 @@ insert :: (Call k, Typeable b, Binary b, Monoid b) => Thrist k a b -> b -> Env k
 insert k v (Env m) = Env $ HashMap.insert (Key k) (unsafeCoerce v) m
 
 cons :: Call k => a -> Env k a -> Env k a
-cons a (Env m) = Env $ mapWithKey (\(Key k) old -> unsafeCoerce $ call k a <> unsafeCoerce old) m
+cons a (Env m) = Env $ mapWithKey (\(Key k) old -> unsafeCoerce $ call k a `mappend` unsafeCoerce old) m
