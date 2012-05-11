@@ -73,6 +73,15 @@ instance Prep Pass where
   prep f (Ap k mf ma) = Ap k (prep f mf) (prep f ma)
   prep _ (Pure a)     = Pure a
 
+#ifdef __GLASGOW_HASKELL__
+#if __GLASGOW_HASKELL__ < 704
+instance Show (Pass k a b) where
+  showsPrec _ _ = showString "<pass>"
+instance Eq (Pass k a b) where
+  _ == _ = False
+#endif
+#endif
+
 instance Num b => Num (Pass k a b) where
   (+) = liftA2 (+)
   (-) = liftA2 (-)

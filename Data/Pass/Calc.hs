@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 module Data.Pass.Calc
   ( Calc(..)
@@ -59,6 +60,15 @@ instance Prep Calc where
   prep _ (Stop b)   = Stop b
   prep t (c :& k)   = prep t c :& prep t . k
   prep t (Rank c k) = Rank (prep t c) (prep t . k)
+
+#ifdef __GLASGOW_HASKELL__
+#if __GLASGOW_HASKELL__ < 704
+instance Show (Calc k a b) where
+  showsPrec _ _ = showString "<calc>"
+instance Eq (Calc k a b) where
+  _ == _ = False
+#endif
+#endif
 
 instance Num b => Num (Calc k a b) where
   (+) = liftA2 (+)
