@@ -1,4 +1,15 @@
 {-# LANGUAGE CPP, GADTs, ScopedTypeVariables #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.Pass.Type
+-- Copyright   :  (C) 2012-2013 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+--
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable (GADTs, Rank2Types)
+--
+----------------------------------------------------------------------------
 module Data.Pass.Type
   ( Pass(..)
   , env
