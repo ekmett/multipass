@@ -1,6 +1,6 @@
 name:          multipass
 category:      Control
-version:       0.1.0.1
+version:       0.1.0.2
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -68,4 +68,4 @@ library
     Data.Pass.Util
     Data.Pass.Util.Beta
 
-  ghc-options: -Wall
+  ghc-options: -Wall -O2
