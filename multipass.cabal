@@ -8,7 +8,7 @@ author:        Edward A. Kmett
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
 stability:     experimental
 homepage:      http://github.com/ekmett/multipass/
-copyright:     Copyright (C) 2012 Edward A. Kmett
+copyright:     Copyright (C) 2012-2013 Edward A. Kmett
 synopsis:      Folding data with multiple named passes
 description:   Folding data with multiple named passes
 build-type:    Simple
